@@ -22,4 +22,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <declare-styleable name="FolderPickerPreferenceAttrs">
         <attr name="useSimpleSummaryProvider" />
     </declare-styleable>
+
+    <declare-styleable name="KeyboardViewPreviewState">
+        <attr name="state_left_edge" format="boolean" />
+        <attr name="state_right_edge" format="boolean" />
+        <attr name="state_long_pressable" format="boolean" />
+    </declare-styleable>
 </resources>

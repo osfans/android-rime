@@ -351,7 +351,7 @@ object ColorManager {
         key: String,
         border: Int = 0,
         borderColorKey: String = "",
-        roundCorner: Int = 0,
+        roundCorner: Float = 0f,
         alpha: Int = 255,
     ): Drawable? {
         val value = getColorValue(key)
@@ -363,7 +363,7 @@ object ColorManager {
         if (value is Int) {
             val gradient = GradientDrawable().apply { setColor(value) }
             if (roundCorner > 0) {
-                gradient.cornerRadius = roundCorner.toFloat()
+                gradient.cornerRadius = roundCorner
             }
             if (borderColorKey.isNotEmpty() && border > 0) {
                 val borderPx = context.dp(border)

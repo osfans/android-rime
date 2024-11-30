@@ -51,7 +51,7 @@ class LayoutStyleMapper(
 
         val spacing = getInt("spacing")
 
-        val roundCorner = getInt("round_corner")
+        val roundCorner = getFloat("round_corner")
 
         val alpha = getInt("alpha")
         val elevation = getInt("elevation")
