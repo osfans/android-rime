@@ -17,7 +17,7 @@ class GeneralStyleMapper(
         val backgroundDimAmount = getFloat("background_dim_amount")
 
         val candidateBorder = getInt("candidate_border")
-        val candidateBorderRound = getInt("candidate_border_round")
+        val candidateBorderRound = getFloat("candidate_border_round")
 
         val candidateFont = getStringList("candidate_font")
 
@@ -123,13 +123,13 @@ class GeneralStyleMapper(
 
         val previewOffset = getInt("preview_offset")
 
-        val previewTextSize = getInt("preview_text_size")
+        val previewTextSize = getFloat("preview_text_size")
 
         val proximityCorrection = getBoolean("proximity_correction")
 
         val resetASCIIMode = getBoolean("reset_ascii_mode")
 
-        val roundCorner = getInt("round_corner")
+        val roundCorner = getFloat("round_corner")
 
         val shadowRadius = getFloat("shadow_radius")
 

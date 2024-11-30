@@ -16,6 +16,7 @@ import com.osfans.trime.ime.core.InputView
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
 import com.osfans.trime.ime.keyboard.KeyboardWindow
+import com.osfans.trime.ime.preview.KeyPreviewChoreographer
 import com.osfans.trime.ime.symbol.LiquidKeyboard
 import com.osfans.trime.ime.window.BoardWindowManager
 import me.tatarka.inject.annotations.Component
@@ -36,6 +37,7 @@ abstract class InputComponent(
     abstract val quickBar: QuickBar
     abstract val composition: CompositionPopupWindow
     abstract val windowManager: BoardWindowManager
+    abstract val preview: KeyPreviewChoreographer
     abstract val keyboardWindow: KeyboardWindow
     abstract val liquidKeyboard: LiquidKeyboard
     abstract val compactCandidate: CompactCandidateModule

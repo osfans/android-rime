@@ -19,25 +19,18 @@ import android.graphics.drawable.StateListDrawable
 import android.os.Message
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
-import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
-import android.widget.PopupWindow
-import androidx.core.view.updateLayoutParams
 import com.osfans.trime.core.Rime
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.data.theme.Theme
+import com.osfans.trime.ime.preview.KeyPreviewChoreographer
 import com.osfans.trime.util.LeakGuardHandlerWrapper
 import com.osfans.trime.util.indexOfStateSet
 import com.osfans.trime.util.sp
 import com.osfans.trime.util.stateDrawableAt
-import splitties.dimensions.dp
-import splitties.views.dsl.core.textView
-import splitties.views.dsl.core.wrapContent
-import splitties.views.gravityBottomCenter
 import timber.log.Timber
 import java.util.Arrays
 import kotlin.math.abs
@@ -51,6 +44,7 @@ class KeyboardView(
     context: Context,
     private val theme: Theme,
     private val keyboard: Keyboard,
+    private val keyPreviewChoreographer: KeyPreviewChoreographer,
 ) : View(context) {
     private var mCurrentKeyIndex = NOT_A_KEY
     private val keyTextSize = theme.generalStyle.keyTextSize
@@ -85,32 +79,8 @@ class KeyboardView(
     private val mShadowRadius = theme.generalStyle.shadowRadius
     private val mShadowColor = ColorManager.getColor("shadow_color")!!
 
-    private val mPreviewText =
-        textView {
-            textSize = theme.generalStyle.previewTextSize.toFloat()
-            typeface = FontManager.getTypeface("preview_font")
-            ColorManager.getColor("preview_text_color")?.let { setTextColor(it) }
-            ColorManager.getColor("preview_back_color")?.let {
-                background =
-                    GradientDrawable().apply {
-                        setColor(it)
-                        cornerRadius = theme.generalStyle.roundCorner.toFloat()
-                    }
-            }
-            gravity = gravityBottomCenter
-            layoutParams = ViewGroup.LayoutParams(wrapContent, wrapContent)
-        }
-    private val mPreviewPopup =
-        PopupWindow(context).apply {
-            contentView = mPreviewText
-            isTouchable = false
-        }
-    private val mPreviewOffset = theme.generalStyle.previewOffset
-    private val mPreviewHeight = theme.generalStyle.previewHeight
-
     // Working variable
-    private val mCoordinates = IntArray(2)
-    private var mPopupParent: View = this
+    private val originCoords = intArrayOf(0, 0)
     private val mKeys get() = keyboard.keys
 
     var keyboardActionListener: KeyboardActionListener? = null
@@ -199,8 +169,7 @@ class KeyboardView(
             val mKeyboardView = getOwnerInstanceOrNull() ?: return
             val repeatInterval by AppPrefs.defaultInstance().keyboard.repeatInterval
             when (msg.what) {
-                MSG_SHOW_PREVIEW -> mKeyboardView.showKey(msg.arg1, KeyBehavior.entries[msg.arg2])
-                MSG_REMOVE_PREVIEW -> mKeyboardView.mPreviewPopup.dismiss()
+                MSG_REMOVE_PREVIEW -> mKeyboardView.dismissKeyPreviewWithoutDelay(msg.obj as Key)
                 MSG_REPEAT ->
                     if (mKeyboardView.repeatKey()) {
                         val repeat = Message.obtain(this, MSG_REPEAT)
@@ -216,7 +185,6 @@ class KeyboardView(
     }
 
     init {
-        setKeyboardBackground()
         computeProximityThreshold(keyboard)
         invalidateAllKeys()
     }
@@ -356,12 +324,28 @@ class KeyboardView(
             },
         ).apply { setIsLongpressEnabled(false) }
 
-    private fun setKeyboardBackground() {
-        val d = mPreviewText.background
-        if (d is GradientDrawable) {
-            d.cornerRadius = keyboard.roundCorner
-            mPreviewText.background = d
+    private fun showKeyPreview(
+        key: Key,
+        behavior: KeyBehavior,
+    ) {
+        getLocationInWindow(originCoords)
+        keyPreviewChoreographer.placeAndShowKeyPreview(key, key.getPreviewText(behavior), width, originCoords)
+    }
+
+    private fun dismissKeyPreviewWithoutDelay(key: Key) {
+        keyPreviewChoreographer.dismissKeyPreview(key)
+        invalidateKey(key)
+    }
+
+    private fun dismissKeyPreview(key: Key) {
+        if (isHardwareAccelerated) {
+            keyPreviewChoreographer.dismissKeyPreview(key)
+            return
         }
+        mHandler.sendMessageDelayed(
+            mHandler.obtainMessage(MSG_REMOVE_PREVIEW, key),
+            DELAY_AFTER_PREVIEW,
+        )
     }
 
     /**
@@ -714,7 +698,6 @@ class KeyboardView(
         behavior: KeyBehavior = KeyBehavior.COMPOSING,
     ) {
         val oldKeyIndex = mCurrentKeyIndex
-        val previewPopup = mPreviewPopup
         mCurrentKeyIndex = keyIndex
         // Release the old key and press the new key
         val keys = mKeys
@@ -732,88 +715,12 @@ class KeyboardView(
         }
         // If key changed and preview is on ...
         if (oldKeyIndex != mCurrentKeyIndex && showPreview) {
-            mHandler.removeMessages(MSG_SHOW_PREVIEW)
-            if (previewPopup.isShowing) {
-                if (keyIndex == NOT_A_KEY) {
-                    mHandler.sendMessageDelayed(
-                        mHandler.obtainMessage(MSG_REMOVE_PREVIEW),
-                        DELAY_AFTER_PREVIEW.toLong(),
-                    )
-                }
-            }
-            if (keyIndex != -1) {
-                if (previewPopup.isShowing && mPreviewText.visibility == VISIBLE) {
-                    // Show right away, if it's already visible and finger is moving around
-                    showKey(keyIndex, behavior)
-                } else {
-                    mHandler.sendMessageDelayed(
-                        mHandler.obtainMessage(MSG_SHOW_PREVIEW, keyIndex, behavior.ordinal),
-                        DELAY_BEFORE_PREVIEW.toLong(),
-                    )
-                }
-            }
-        }
-    }
-
-    private fun showKey(
-        index: Int,
-        behavior: KeyBehavior,
-    ) {
-        val previewPopup = mPreviewPopup
-        if (index !in mKeys.indices) return
-        val key = mKeys[index]
-        mPreviewText.setCompoundDrawables(null, null, null, null)
-        mPreviewText.text = key.getPreviewText(behavior)
-        mPreviewText.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
-        val popupWidth =
-            max(
-                mPreviewText.measuredWidth,
-                key.width + mPreviewText.paddingLeft + mPreviewText.paddingRight,
-            )
-        val popupHeight = dp(mPreviewHeight)
-        mPreviewText.updateLayoutParams {
-            width = popupWidth
-            height = popupHeight
-        }
-        var mPopupPreviewY: Int
-        var mPopupPreviewX: Int
-        val mPreviewCentered = false
-        if (!mPreviewCentered) {
-            mPopupPreviewX = key.x - mPreviewText.paddingLeft + paddingLeft
-            mPopupPreviewY = key.y - popupHeight + dp(mPreviewOffset)
-        } else {
-            // TODO: Fix this if centering is brought back
-            mPopupPreviewX = 160 - mPreviewText.measuredWidth / 2
-            mPopupPreviewY = -mPreviewText.measuredHeight
-        }
-        mHandler.removeMessages(MSG_REMOVE_PREVIEW)
-        getLocationInWindow(mCoordinates)
-
-        // Set the preview background state
-        mPreviewText.background.setState(EMPTY_STATE_SET)
-        mPopupPreviewX += mCoordinates[0]
-        mPopupPreviewY += mCoordinates[1]
-
-        // If the popup cannot be shown above the key, put it on the side
-        getLocationOnScreen(mCoordinates)
-        if (mPopupPreviewY + mCoordinates[1] < 0) {
-            // If the key you're pressing is on the left side of the keyboard, show the popup on
-            // the right, offset by enough to see at least one key to the left/right.
-            if (key.x + key.width <= width / 2) {
-                mPopupPreviewX += (key.width * 2.5).toInt()
+            if (keyIndex == NOT_A_KEY) {
+                dismissKeyPreview(keys[oldKeyIndex])
             } else {
-                mPopupPreviewX -= (key.width * 2.5).toInt()
+                showKeyPreview(keys[keyIndex], behavior)
             }
-            mPopupPreviewY += popupHeight
         }
-        if (previewPopup.isShowing) {
-            // previewPopup.update(mPopupPreviewX, mPopupPreviewY, popupWidth, popupHeight);
-            previewPopup.dismiss() // 禁止窗口動畫
-        }
-        previewPopup.width = popupWidth
-        previewPopup.height = popupHeight
-        previewPopup.showAtLocation(mPopupParent, Gravity.NO_GRAVITY, mPopupPreviewX, mPopupPreviewY)
-        mPreviewText.visibility = VISIBLE
     }
 
     /**
@@ -1157,13 +1064,9 @@ class KeyboardView(
     private fun removeMessages() {
         mHandler.removeMessages(MSG_REPEAT)
         mHandler.removeMessages(MSG_LONGPRESS)
-        mHandler.removeMessages(MSG_SHOW_PREVIEW)
     }
 
     fun onDetach() {
-        if (mPreviewPopup.isShowing) {
-            mPreviewPopup.dismiss()
-        }
         removeMessages()
         freeDrawingBuffer()
     }
@@ -1192,12 +1095,10 @@ class KeyboardView(
 
     companion object {
         private const val NOT_A_KEY = -1
-        private const val MSG_SHOW_PREVIEW = 1
         private const val MSG_REMOVE_PREVIEW = 2
         private const val MSG_REPEAT = 3
         private const val MSG_LONGPRESS = 4
-        private const val DELAY_BEFORE_PREVIEW = 0
-        private const val DELAY_AFTER_PREVIEW = 70
+        private const val DELAY_AFTER_PREVIEW = 100L
         private const val DEBOUNCE_TIME = 70
         private const val MAX_NEARBY_KEYS = 12
     }

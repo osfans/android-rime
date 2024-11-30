@@ -36,6 +36,7 @@ import com.osfans.trime.ime.dependency.InputComponent
 import com.osfans.trime.ime.dependency.create
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
 import com.osfans.trime.ime.keyboard.KeyboardWindow
+import com.osfans.trime.ime.preview.KeyPreviewChoreographer
 import com.osfans.trime.ime.symbol.LiquidKeyboard
 import com.osfans.trime.util.ColorUtils
 import com.osfans.trime.util.styledFloat
@@ -109,6 +110,7 @@ class InputView(
     private val keyboardWindow: KeyboardWindow = inputComponent.keyboardWindow
     private val liquidKeyboard: LiquidKeyboard = inputComponent.liquidKeyboard
     private val compactCandidate: CompactCandidateModule = inputComponent.compactCandidate
+    private val preview: KeyPreviewChoreographer = inputComponent.preview
 
     private fun addBroadcastReceivers() {
         broadcaster.addReceiver(quickBar)
@@ -263,6 +265,13 @@ class InputView(
                 bottomOfParent()
             },
         )
+
+        add(
+            preview.root,
+            lParams(matchParent, matchParent) {
+                centerInParent()
+            },
+        )
     }
 
     private fun updateKeyboardSize() {
@@ -409,6 +418,7 @@ class InputView(
         // implies that InputView should not be attached again after detached.
         callbackHandlerJob.cancel()
         updateWindowViewHeightJob.cancel()
+        preview.root.removeAllViews()
         broadcaster.clear()
         super.onDetachedFromWindow()
     }
