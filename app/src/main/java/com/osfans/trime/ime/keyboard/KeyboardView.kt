@@ -16,21 +16,26 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
-import android.os.Message
+import android.os.SystemClock
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.View
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.osfans.trime.core.Rime
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.preview.KeyPreviewChoreographer
-import com.osfans.trime.util.LeakGuardHandlerWrapper
 import com.osfans.trime.util.indexOfStateSet
 import com.osfans.trime.util.sp
 import com.osfans.trime.util.stateDrawableAt
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Arrays
 import kotlin.math.abs
@@ -160,28 +165,47 @@ class KeyboardView(
         labelEnter = label
     }
 
-    private val mHandler = MyHandler(this)
+    private val lifecycleScope by lazy {
+        findViewTreeLifecycleOwner()?.lifecycleScope!!
+    }
 
-    private class MyHandler(
-        view: KeyboardView,
-    ) : LeakGuardHandlerWrapper<KeyboardView?>(view) {
-        override fun handleMessage(msg: Message) {
-            val mKeyboardView = getOwnerInstanceOrNull() ?: return
-            val repeatInterval by AppPrefs.defaultInstance().keyboard.repeatInterval
-            when (msg.what) {
-                MSG_REMOVE_PREVIEW -> mKeyboardView.dismissKeyPreviewWithoutDelay(msg.obj as Key)
-                MSG_REPEAT ->
-                    if (mKeyboardView.repeatKey()) {
-                        val repeat = Message.obtain(this, MSG_REPEAT)
-                        sendMessageDelayed(repeat, repeatInterval.toLong())
+    private var longPressJob: Job? = null
+    private var repeatJob: Job? = null
+    private var removePreviewJob: Job? = null
+
+    private fun handleLongPressJob() {
+        longPressJob?.cancel()
+        longPressJob =
+            lifecycleScope.launch {
+                delay(longPressTimeout.toLong())
+                InputFeedbackManager.keyPressVibrate(this@KeyboardView, true)
+                openPopupIfRequired()
+            }
+    }
+
+    private fun handleRepeatJob() {
+        repeatJob?.cancel()
+        repeatJob =
+            lifecycleScope.launch {
+                delay(longPressTimeout.toLong())
+                var lastTriggerTime: Long
+                while (isActive && isEnabled) {
+                    lastTriggerTime = SystemClock.uptimeMillis()
+                    if (repeatKey()) {
+                        val t = lastTriggerTime + repeatInterval - SystemClock.uptimeMillis()
+                        if (t > 0) delay(t)
                     }
-
-                MSG_LONGPRESS -> {
-                    InputFeedbackManager.keyPressVibrate(mKeyboardView, true)
-                    mKeyboardView.openPopupIfRequired()
                 }
             }
-        }
+    }
+
+    private fun handleRemovePreviewJob(key: Key) {
+        removePreviewJob?.cancel()
+        removePreviewJob =
+            lifecycleScope.launch {
+                delay(DELAY_AFTER_PREVIEW)
+                dismissKeyPreviewWithoutDelay(key)
+            }
     }
 
     init {
@@ -342,10 +366,7 @@ class KeyboardView(
             keyPreviewChoreographer.dismissKeyPreview(key)
             return
         }
-        mHandler.sendMessageDelayed(
-            mHandler.obtainMessage(MSG_REMOVE_PREVIEW, key),
-            DELAY_AFTER_PREVIEW,
-        )
+        handleRemovePreviewJob(key)
     }
 
     /**
@@ -777,7 +798,7 @@ class KeyboardView(
      */
     private fun onLongPress(popupKey: Key): Boolean {
         popupKey.longClick?.let {
-            removeMessages()
+            cancelAllJobs()
             mAbortKey = true
             keyboardActionListener?.onAction(it)
             releaseKey(it.code)
@@ -851,6 +872,7 @@ class KeyboardView(
     }
 
     private val longPressTimeout by AppPrefs.defaultInstance().keyboard.longPressTimeout
+    private val repeatInterval by AppPrefs.defaultInstance().keyboard.repeatInterval
 
     private fun onModifiedTouchEvent(me: MotionEvent): Boolean {
         // final int pointerCount = me.getPointerCount();
@@ -886,8 +908,10 @@ class KeyboardView(
         if (swipeEnabled) {
             if (customGestureDetector.onTouchEvent(me)) {
                 showPreview(NOT_A_KEY)
-                mHandler.removeMessages(MSG_REPEAT)
-                mHandler.removeMessages(MSG_LONGPRESS)
+                repeatJob?.cancel()
+                repeatJob = null
+                longPressJob?.cancel()
+                longPressJob = null
                 return true
             }
         }
@@ -911,9 +935,7 @@ class KeyboardView(
             keyboardActionListener?.onPress(if (keyIndex != NOT_A_KEY) mKeys[keyIndex].code else 0)
             if (mCurrentKey >= 0 && mKeys[mCurrentKey].click!!.isRepeatable) {
                 mRepeatKeyIndex = mCurrentKey
-                val msg = mHandler.obtainMessage(MSG_REPEAT)
-                val repeatStartDelay = longPressTimeout + 1
-                mHandler.sendMessageDelayed(msg, repeatStartDelay.toLong())
+                handleRepeatJob()
                 // Delivering the key could have caused an abort
                 if (mAbortKey) {
                     mRepeatKeyIndex = NOT_A_KEY
@@ -921,8 +943,7 @@ class KeyboardView(
                 }
             }
             if (mCurrentKey != NOT_A_KEY) {
-                val msg = mHandler.obtainMessage(MSG_LONGPRESS, me)
-                mHandler.sendMessageDelayed(msg, longPressTimeout.toLong())
+                handleLongPressJob()
             }
             showPreview(keyIndex, KeyBehavior.COMPOSING)
         }
@@ -931,7 +952,7 @@ class KeyboardView(
          * @return 跳出外层函数
          */
         fun modifiedPointerUp(): Boolean {
-            removeMessages()
+            cancelAllJobs()
             mLastUpTime = eventTime
             if (keyIndex == mCurrentKey) {
                 mCurrentKeyTime += eventTime - mLastMoveTime
@@ -958,8 +979,10 @@ class KeyboardView(
                             if (dx > swipeTravel) KeyBehavior.SWIPE_RIGHT else KeyBehavior.SWIPE_LEFT
                         }
                     showPreview(NOT_A_KEY)
-                    mHandler.removeMessages(MSG_REPEAT)
-                    mHandler.removeMessages(MSG_LONGPRESS)
+                    repeatJob?.cancel()
+                    repeatJob = null
+                    longPressJob?.cancel()
+                    longPressJob = null
                     detectAndSendKey(mDownKey, mStartX, mStartY, me.eventTime, keyBehavior)
                     return true
                 } else {
@@ -1023,12 +1046,9 @@ class KeyboardView(
                     }
                 }
                 if (!mComboMode && !continueLongPress) {
-                    // Cancel old long press
-                    mHandler.removeMessages(MSG_LONGPRESS)
                     // Start new long press if key has changed
                     if (keyIndex != NOT_A_KEY) {
-                        val msg = mHandler.obtainMessage(MSG_LONGPRESS, me)
-                        mHandler.sendMessageDelayed(msg, longPressTimeout.toLong())
+                        handleLongPressJob()
                     }
                 }
                 showPreview(mCurrentKey)
@@ -1043,7 +1063,7 @@ class KeyboardView(
             }
 
             MotionEvent.ACTION_CANCEL -> {
-                removeMessages()
+                cancelAllJobs()
                 mAbortKey = true
                 showPreview(NOT_A_KEY)
                 invalidateKey(mKeys[mCurrentKey])
@@ -1061,13 +1081,17 @@ class KeyboardView(
         return true
     }
 
-    private fun removeMessages() {
-        mHandler.removeMessages(MSG_REPEAT)
-        mHandler.removeMessages(MSG_LONGPRESS)
+    private fun cancelAllJobs() {
+        repeatJob?.cancel()
+        repeatJob = null
+        longPressJob?.cancel()
+        longPressJob = null
+        removePreviewJob?.cancel()
+        removePreviewJob = null
     }
 
     fun onDetach() {
-        removeMessages()
+        cancelAllJobs()
         freeDrawingBuffer()
     }
 
@@ -1095,9 +1119,6 @@ class KeyboardView(
 
     companion object {
         private const val NOT_A_KEY = -1
-        private const val MSG_REMOVE_PREVIEW = 2
-        private const val MSG_REPEAT = 3
-        private const val MSG_LONGPRESS = 4
         private const val DELAY_AFTER_PREVIEW = 100L
         private const val DEBOUNCE_TIME = 70
         private const val MAX_NEARBY_KEYS = 12
