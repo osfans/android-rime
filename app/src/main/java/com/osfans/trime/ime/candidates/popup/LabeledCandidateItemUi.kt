@@ -18,9 +18,11 @@ import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.util.sp
+import splitties.dimensions.dp
 import splitties.views.backgroundColor
 import splitties.views.dsl.core.Ui
 import splitties.views.dsl.core.textView
+import splitties.views.horizontalPadding
 
 class LabeledCandidateItemUi(
     override val ctx: Context,
@@ -53,7 +55,10 @@ class LabeledCandidateItemUi(
     private val highlightCandidateTextColor = ColorManager.getColor("hilited_candidate_text_color")!!
     private val highlightBackColor = ColorManager.getColor("hilited_back_color")!!
 
-    override val root = textView()
+    override val root =
+        textView {
+            horizontalPadding = dp(theme.generalStyle.candidatePadding)
+        }
 
     fun update(
         candidate: RimeProto.Candidate,
