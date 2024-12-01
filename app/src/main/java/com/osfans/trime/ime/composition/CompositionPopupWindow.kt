@@ -23,16 +23,17 @@ import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.bar.QuickBar
 import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
+import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.dependency.InputScope
 import com.osfans.trime.ime.enums.PopupPosition
 import me.tatarka.inject.annotations.Inject
 import splitties.dimensions.dp
-import timber.log.Timber
 
 @InputScope
 @Inject
 class CompositionPopupWindow(
     private val ctx: Context,
+    private val service: TrimeInputMethodService,
     private val rime: RimeSession,
     private val theme: Theme,
     private val bar: QuickBar,
@@ -83,15 +84,15 @@ class CompositionPopupWindow(
 
     var isCursorUpdated = false // 光標是否移動
 
-    private val mPopupRectF = RectF()
+    private val anchorPosition = RectF()
     private val mPopupHandler = Handler(Looper.getMainLooper())
 
     private val mPopupTimer =
         Runnable {
             if (bar.view.windowToken == null) return@Runnable
             bar.view.let { anchor ->
-                var x = 0
-                var y = 0
+                var x: Int
+                var y: Int
                 val (_, anchorY) =
                     intArrayOf(0, 0).also {
                         anchor.getLocationInWindow(it)
@@ -105,49 +106,50 @@ class CompositionPopupWindow(
                 val minY = anchor.dp(popupMargin)
                 val maxX = anchor.width - selfWidth - minX
                 val maxY = anchorY - selfHeight - minY
-                if (isWinFixed() || !isCursorUpdated) {
-                    // setCandidatesViewShown(true);
-                    when (popupWindowPos) {
-                        PopupPosition.TOP_RIGHT -> {
-                            x = maxX
-                            y = minY
-                        }
-                        PopupPosition.TOP_LEFT -> {
-                            x = minX
-                            y = minY
-                        }
-                        PopupPosition.BOTTOM_RIGHT -> {
-                            x = maxX
-                            y = maxY
-                        }
-                        PopupPosition.DRAG -> {
-                            x = popupWindowX
-                            y = popupWindowY
-                        }
-                        PopupPosition.FIXED, PopupPosition.BOTTOM_LEFT -> {
-                            x = minX
-                            y = maxY
-                        }
-                        else -> {
-                            x = minX
-                            y = maxY
-                        }
+                when (popupWindowPos) {
+                    PopupPosition.TOP_RIGHT -> {
+                        x = maxX
+                        y = minY
                     }
-                } else {
-                    // setCandidatesViewShown(false);
-                    when (popupWindowPos) {
-                        PopupPosition.LEFT, PopupPosition.LEFT_UP -> x = mPopupRectF.left.toInt()
-                        PopupPosition.RIGHT, PopupPosition.RIGHT_UP -> x = mPopupRectF.right.toInt()
-                        else -> Timber.wtf("UNREACHABLE BRANCH")
+                    PopupPosition.TOP_LEFT -> {
+                        x = minX
+                        y = minY
                     }
+                    PopupPosition.BOTTOM_RIGHT -> {
+                        x = maxX
+                        y = maxY
+                    }
+                    PopupPosition.DRAG -> {
+                        x = popupWindowX
+                        y = popupWindowY
+                    }
+                    PopupPosition.FIXED, PopupPosition.BOTTOM_LEFT -> {
+                        x = minX
+                        y = maxY
+                    }
+                    PopupPosition.LEFT -> {
+                        x = anchorPosition.left.toInt()
+                        y = anchorPosition.bottom.toInt() + popupMargin
+                    }
+                    PopupPosition.LEFT_UP -> {
+                        x = anchorPosition.left.toInt()
+                        y = anchorPosition.top.toInt() - selfHeight - popupMargin
+                    }
+                    PopupPosition.RIGHT -> {
+                        x = anchorPosition.right.toInt()
+                        y = anchorPosition.bottom.toInt() + popupMargin
+                    }
+                    PopupPosition.RIGHT_UP -> {
+                        x = anchorPosition.right.toInt()
+                        y = anchorPosition.top.toInt() - selfHeight - popupMargin
+                    }
+                    else -> {
+                        x = minX
+                        y = maxY
+                    }
+                }
+                if (!isWinFixed() || isCursorUpdated) {
                     x = MathUtils.clamp(x, minX, maxX)
-                    when (popupWindowPos) {
-                        PopupPosition.LEFT, PopupPosition.RIGHT ->
-                            y = mPopupRectF.bottom.toInt() + popupMargin
-                        PopupPosition.LEFT_UP, PopupPosition.RIGHT_UP ->
-                            y = mPopupRectF.top.toInt() - selfHeight - popupMargin
-                        else -> Timber.wtf("UNREACHABLE BRANCH")
-                    }
                     y = MathUtils.clamp(y, minY, maxY)
                 }
                 if (!mPopupWindow.isShowing) {
@@ -179,6 +181,7 @@ class CompositionPopupWindow(
     fun hideCompositionView() {
         mPopupWindow.dismiss()
         mPopupHandler.removeCallbacks(mPopupTimer)
+        decorLocationUpdated = false
     }
 
     private fun updateCompositionView() {
@@ -188,35 +191,48 @@ class CompositionPopupWindow(
         mPopupHandler.post(mPopupTimer)
     }
 
-    fun updateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo) {
+    private val decorLocation = floatArrayOf(0f, 0f)
+    private var decorLocationUpdated = false
+
+    private fun updateDecorLocation() {
+        val (dX, dY) =
+            intArrayOf(0, 0).also {
+                service.window.window!!
+                    .decorView
+                    .getLocationOnScreen(it)
+            }
+        decorLocation[0] = dX.toFloat()
+        decorLocation[1] = dY.toFloat()
+        decorLocationUpdated = true
+    }
+
+    fun updateCursorAnchorInfo(info: CursorAnchorInfo) {
         if (!isWinFixed()) {
-            val composingText = cursorAnchorInfo.composingText
+            val bounds = info.getCharacterBounds(0)
             // update mPopupRectF
-            if (composingText == null) {
+            if (bounds == null) {
                 // composing is disabled in target app or trime settings
                 // use the position of the insertion marker instead
-                mPopupRectF.top = cursorAnchorInfo.insertionMarkerTop
-                mPopupRectF.left = cursorAnchorInfo.insertionMarkerHorizontal
-                mPopupRectF.bottom = cursorAnchorInfo.insertionMarkerBottom
-                mPopupRectF.right = mPopupRectF.left
+                anchorPosition.top = info.insertionMarkerTop
+                anchorPosition.left = info.insertionMarkerHorizontal
+                anchorPosition.bottom = info.insertionMarkerBottom
+                anchorPosition.right = info.insertionMarkerHorizontal
             } else {
-                val startPos: Int = cursorAnchorInfo.composingTextStart
-                val endPos = startPos + composingText.length - 1
-                val startCharRectF = cursorAnchorInfo.getCharacterBounds(startPos)
-                val endCharRectF = cursorAnchorInfo.getCharacterBounds(endPos)
-                if (startCharRectF == null || endCharRectF == null) {
-                    // composing text has been changed, the next onUpdateCursorAnchorInfo is on the road
-                    // ignore this outdated update
-                    return
-                }
                 // for different writing system (e.g. right to left languages),
                 // we have to calculate the correct RectF
-                mPopupRectF.top = startCharRectF.top.coerceAtMost(endCharRectF.top)
-                mPopupRectF.left = startCharRectF.left.coerceAtMost(endCharRectF.left)
-                mPopupRectF.bottom = startCharRectF.bottom.coerceAtLeast(endCharRectF.bottom)
-                mPopupRectF.right = startCharRectF.right.coerceAtLeast(endCharRectF.right)
+                val horizontal = if (root.layoutDirection == View.LAYOUT_DIRECTION_RTL) bounds.right else bounds.left
+                anchorPosition.top = bounds.top
+                anchorPosition.left = horizontal
+                anchorPosition.bottom = bounds.bottom
+                anchorPosition.right = horizontal
             }
-            cursorAnchorInfo.matrix.mapRect(mPopupRectF)
+            info.matrix.mapRect(anchorPosition)
+            // avoid calling `decorView.getLocationOnScreen` repeatedly
+            if (!decorLocationUpdated) {
+                updateDecorLocation()
+            }
+            val (dX, dY) = decorLocation
+            anchorPosition.offset(-dX, -dY)
         }
     }
 }
