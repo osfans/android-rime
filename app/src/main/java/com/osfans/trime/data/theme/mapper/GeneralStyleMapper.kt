@@ -90,12 +90,12 @@ class GeneralStyleMapper(
 
         val keyTextSize = getFloat("key_text_size")
 
-        val keyTextOffsetX = getInt("key_text_offset_x")
-        val keyTextOffsetY = getInt("key_text_offset_y")
-        val keySymbolOffsetX = getInt("key_symbol_offset_x")
-        val keySymbolOffsetY = getInt("key_symbol_offset_y")
-        val keyHintOffsetX = getInt("key_hint_offset_x")
-        val keyHintOffsetY = getInt("key_hint_offset_y")
+        val keyTextOffsetX = getFloat("key_text_offset_x")
+        val keyTextOffsetY = getFloat("key_text_offset_y")
+        val keySymbolOffsetX = getFloat("key_symbol_offset_x")
+        val keySymbolOffsetY = getFloat("key_symbol_offset_y")
+        val keyHintOffsetX = getFloat("key_hint_offset_x")
+        val keyHintOffsetY = getFloat("key_hint_offset_y")
         val keyPressOffsetX = getInt("key_press_offset_x")
         val keyPressOffsetY = getInt("key_press_offset_y")
 

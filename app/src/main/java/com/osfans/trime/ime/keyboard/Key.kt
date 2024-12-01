@@ -58,17 +58,17 @@ class Key(
         private set
     var roundCorner: Float = 0f
         private set
-    var keyTextOffsetX = 0
+    var keyTextOffsetX = 0f
         get() = field + keyOffsetX
-    var keyTextOffsetY = 0
+    var keyTextOffsetY = 0f
         get() = field + keyOffsetY
-    var keySymbolOffsetX = 0
+    var keySymbolOffsetX = 0f
         get() = field + keyOffsetX
-    var keySymbolOffsetY = 0
+    var keySymbolOffsetY = 0f
         get() = field + keyOffsetY
-    var keyHintOffsetX = 0
+    var keyHintOffsetX = 0f
         get() = field + keyOffsetX
-    var keyHintOffsetY = 0
+    var keyHintOffsetY = 0f
         get() = field + keyOffsetY
     var keyPressOffsetX = 0
     var keyPressOffsetY = 0
@@ -156,7 +156,7 @@ class Key(
      * @see .onReleased
      */
     fun onPressed() {
-        isPressed = !isPressed
+        isPressed = true
     }
 
     /**
@@ -166,7 +166,7 @@ class Key(
      * @see .onPressed
      */
     fun onReleased() {
-        isPressed = !isPressed
+        isPressed = false
         if (click!!.isSticky) isOn = !isOn
     }
 
@@ -280,26 +280,6 @@ class Key(
         get() {
             val c = this.code
             return c == KeyEvent.KEYCODE_SHIFT_LEFT || c == KeyEvent.KEYCODE_SHIFT_RIGHT
-        }
-    val isCtrl: Boolean
-        get() {
-            val c = this.code
-            return c == KeyEvent.KEYCODE_CTRL_LEFT || c == KeyEvent.KEYCODE_CTRL_RIGHT
-        }
-    val isMeta: Boolean
-        get() {
-            val c = this.code
-            return c == KeyEvent.KEYCODE_META_LEFT || c == KeyEvent.KEYCODE_META_RIGHT
-        }
-    val isAlt: Boolean
-        get() {
-            val c = this.code
-            return c == KeyEvent.KEYCODE_ALT_LEFT || c == KeyEvent.KEYCODE_ALT_RIGHT
-        }
-    val isSys: Boolean
-        get() {
-            val c = this.code
-            return c == KeyEvent.KEYCODE_SYM
         }
     val isShiftLock: Boolean
         // Shift、Ctrl、Alt、Meta等修饰键在点击时是否触发锁定
