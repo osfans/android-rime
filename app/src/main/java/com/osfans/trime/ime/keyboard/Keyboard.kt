@@ -174,8 +174,6 @@ class Keyboard(
             )
         isLock = obtainBoolean(keyboardConfig, "lock", false)
         val columns = obtainInt(keyboardConfig, "columns", 30)
-        var defaultWidth = (obtainFloat(keyboardConfig, "width", 0f) * mDisplayWidth / 100).toInt()
-        if (defaultWidth == 0) defaultWidth = keyWidth
 
         // 按键高度取值顺序： keys > keyboard/height > style/key_height
         // 考虑到key设置height_land需要对皮肤做大量修改，而当部分key设置height而部分没有设时会造成按键高度异常，故取消普通按键的height_land参数
@@ -218,7 +216,7 @@ class Keyboard(
             obtainFloat(
                 keyboardConfig,
                 "round_corner",
-                theme.generalStyle.roundCorner.toFloat(),
+                theme.generalStyle.roundCorner,
             )
         val horizontalGap = horizontalGap
         val verticalGap = verticalGap
@@ -301,113 +299,47 @@ class Keyboard(
                     x += widthPx + gap
                     continue // 縮進
                 }
-                val defaultKeyTextOffsetX =
-                    appContext
-                        .sp(
-                            obtainFloat(
-                                keyboardConfig,
-                                "key_text_offset_x",
-                                theme.generalStyle.keyTextOffsetX.toFloat(),
-                            ),
-                        ).toInt()
-                val defaultKeyTextOffsetY =
-                    appContext
-                        .sp(
-                            obtainFloat(
-                                keyboardConfig,
-                                "key_text_offset_y",
-                                theme.generalStyle.keyTextOffsetY.toFloat(),
-                            ),
-                        ).toInt()
-                val defaultKeySymbolOffsetX =
-                    appContext
-                        .sp(
-                            obtainFloat(
-                                keyboardConfig,
-                                "key_symbol_offset_x",
-                                theme.generalStyle.keySymbolOffsetX.toFloat(),
-                            ),
-                        ).toInt()
-                val defaultKeySymbolOffsetY =
-                    appContext
-                        .sp(
-                            obtainFloat(
-                                keyboardConfig,
-                                "key_symbol_offset_y",
-                                theme.generalStyle.keySymbolOffsetY.toFloat(),
-                            ),
-                        ).toInt()
-                val defaultKeyHintOffsetX =
-                    appContext
-                        .sp(
-                            obtainFloat(
-                                keyboardConfig,
-                                "key_hint_offset_x",
-                                theme.generalStyle.keyHintOffsetX.toFloat(),
-                            ),
-                        ).toInt()
-                val defaultKeyHintOffsetY =
-                    appContext
-                        .sp(
-                            obtainFloat(
-                                keyboardConfig,
-                                "key_hint_offset_y",
-                                theme.generalStyle.keyHintOffsetY.toFloat(),
-                            ),
-                        ).toInt()
-                val defaultKeyPressOffsetX =
-                    obtainInt(
-                        keyboardConfig,
-                        "key_press_offset_x",
-                        theme.generalStyle.keyPressOffsetX,
-                    )
-                val defaultKeyPressOffsetY =
-                    obtainInt(
-                        keyboardConfig,
-                        "key_press_offset_y",
-                        theme.generalStyle.keyPressOffsetY,
-                    )
                 val key = Key(this, mk)
                 key.keyTextOffsetX =
-                    appContext
-                        .sp(
-                            obtainFloat(mk, "key_text_offset_x", defaultKeyTextOffsetX.toFloat()),
-                        ).toInt()
+                    obtainFloat(
+                        mk,
+                        "key_text_offset_x",
+                        obtainFloat(keyboardConfig, "key_text_offset_x", theme.generalStyle.keyTextOffsetX),
+                    )
                 key.keyTextOffsetY =
-                    appContext
-                        .sp(
-                            obtainFloat(mk, "key_text_offset_y", defaultKeyTextOffsetY.toFloat()),
-                        ).toInt()
+                    obtainFloat(
+                        mk,
+                        "key_text_offset_y",
+                        obtainFloat(keyboardConfig, "key_text_offset_y", theme.generalStyle.keyTextOffsetY),
+                    )
                 key.keySymbolOffsetX =
-                    appContext
-                        .sp(
-                            obtainFloat(
-                                mk,
-                                "key_symbol_offset_x",
-                                defaultKeySymbolOffsetX.toFloat(),
-                            ),
-                        ).toInt()
+                    obtainFloat(
+                        mk,
+                        "key_symbol_offset_x",
+                        obtainFloat(keyboardConfig, "key_symbol_offset_x", theme.generalStyle.keySymbolOffsetX),
+                    )
                 key.keySymbolOffsetY =
-                    appContext
-                        .sp(
-                            obtainFloat(
-                                mk,
-                                "key_symbol_offset_y",
-                                defaultKeySymbolOffsetY.toFloat(),
-                            ),
-                        ).toInt()
+                    obtainFloat(
+                        mk,
+                        "key_symbol_offset_y",
+                        obtainFloat(keyboardConfig, "key_symbol_offset_y", theme.generalStyle.keySymbolOffsetY),
+                    )
                 key.keyHintOffsetX =
-                    appContext
-                        .sp(
-                            obtainFloat(mk, "key_hint_offset_x", defaultKeyHintOffsetX.toFloat()),
-                        ).toInt()
+                    obtainFloat(
+                        mk,
+                        "key_hint_offset_x",
+                        obtainFloat(keyboardConfig, "key_hint_offset_x", theme.generalStyle.keyHintOffsetX),
+                    )
                 key.keyHintOffsetY =
-                    appContext
-                        .sp(
-                            obtainFloat(mk, "key_hint_offset_y", defaultKeyHintOffsetY.toFloat()),
-                        ).toInt()
-                key.keyPressOffsetX = obtainInt(mk, "key_press_offset_x", defaultKeyPressOffsetX)
-                key.keyPressOffsetY = obtainInt(mk, "key_press_offset_y", defaultKeyPressOffsetY)
+                    obtainFloat(
+                        mk,
+                        "key_hint_offset_y",
+                        obtainFloat(keyboardConfig, "key_hint_offset_y", theme.generalStyle.keyHintOffsetY),
+                    )
+                key.keyPressOffsetX =
+                    obtainInt(mk, "key_press_offset_x", obtainInt(keyboardConfig, "key_press_offset_x", theme.generalStyle.keyPressOffsetX))
+                key.keyPressOffsetY =
+                    obtainInt(mk, "key_press_offset_y", obtainInt(keyboardConfig, "key_press_offset_y", theme.generalStyle.keyPressOffsetY))
                 key.x = x
                 key.y = y
                 val rightGap = abs(mDisplayWidth - x - widthPx - gap / 2)
@@ -576,64 +508,7 @@ class Keyboard(
         return if (on) setModifier(keycode, keepOn) else setModifier(keycode, keyDown)
     }
 
-    fun setAltOn(
-        on: Boolean,
-        keyDown: Boolean,
-    ): Boolean {
-        var on = on
-        on = on and keyDown
-        if (mAltKey != null) mAltKey!!.setOn(on)
-        return setModifier(KeyEvent.META_ALT_ON, on || keyDown)
-    }
-
-    fun setCtrlOn(
-        on: Boolean,
-        keyDown: Boolean,
-    ): Boolean {
-        var on = on
-        on = on and keyDown
-        if (mCtrlKey != null) mCtrlKey!!.setOn(on)
-        return setModifier(KeyEvent.META_CTRL_ON, on || keyDown)
-    }
-
-    fun setSymOn(
-        on: Boolean,
-        keyDown: Boolean,
-    ): Boolean {
-        var on = on
-        on = on and keyDown
-        if (mSymKey != null) mSymKey!!.setOn(on)
-        return setModifier(KeyEvent.META_SYM_ON, on || keyDown)
-    }
-
-    fun setMetaOn(
-        on: Boolean,
-        keyDown: Boolean,
-    ): Boolean {
-        var on = on
-        on = on and keyDown
-        if (mMetaKey != null) mMetaKey!!.setOn(on)
-        return setModifier(KeyEvent.META_META_ON, on || keyDown)
-    }
-
-    //  public boolean setFunctionOn(boolean on, boolean keyDown) {
-    //    on = on & keyDown;
-    //    if (mFunctionKey != null) mFunctionKey.setOn(on);
-    //    return setModifier(KeyEvent.META_FUNCTION_ON, on || keyDown);
-    //  }
-
     private val MASK_META_WITHOUT_SHIFT = KeyEvent.META_CTRL_ON or KeyEvent.META_ALT_ON or KeyEvent.META_SYM_ON or KeyEvent.META_META_ON
-    private val MASK_META_WITHOUT_CTRL = KeyEvent.META_SHIFT_ON or KeyEvent.META_ALT_ON or KeyEvent.META_SYM_ON or KeyEvent.META_META_ON
-    private val MASK_META_WITHOUT_ALT = KeyEvent.META_CTRL_ON or KeyEvent.META_SHIFT_ON or KeyEvent.META_SYM_ON or KeyEvent.META_META_ON
-    private val MASK_META_WITHOUT_SYS = KeyEvent.META_CTRL_ON or KeyEvent.META_ALT_ON or KeyEvent.META_SHIFT_ON or KeyEvent.META_META_ON
-    private val MASK_META_WITHOUT_META = KeyEvent.META_CTRL_ON or KeyEvent.META_ALT_ON or KeyEvent.META_SYM_ON or KeyEvent.META_SHIFT_ON
-    private val MASK_META = (
-        KeyEvent.META_CTRL_ON
-            or KeyEvent.META_ALT_ON
-            or KeyEvent.META_SYM_ON
-            or KeyEvent.META_META_ON
-            or KeyEvent.META_SHIFT_ON
-    )
 
     /** Creates a keyboard from the given xml key layout file.  */
     init {
@@ -658,7 +533,7 @@ class Keyboard(
         keyHeight = appContext.dp(theme.generalStyle.keyHeight)
         mProximityThreshold = (keyWidth * SEARCH_DISTANCE).toInt()
         mProximityThreshold *= mProximityThreshold // Square it for comparison
-        roundCorner = theme.generalStyle.roundCorner.toFloat()
+        roundCorner = theme.generalStyle.roundCorner
         mKeys = ArrayList()
         composingKeys = ArrayList()
     }

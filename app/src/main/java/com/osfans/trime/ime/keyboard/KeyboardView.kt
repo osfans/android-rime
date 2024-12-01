@@ -549,8 +549,8 @@ class KeyboardView(
                     sp(if (keyLabel.length > 1) labelTextSize else keyTextSize)
                 }
 
-            val labelX = centerX + key.keyTextOffsetX
-            val labelBaseline = centerY + key.keyTextOffsetY
+            val labelX = centerX + sp(key.keyTextOffsetX)
+            val labelBaseline = centerY + sp(key.keyTextOffsetY)
 
             paint.color = key.getTextColorForState(currentKeyDrawableState)
                 ?: mKeyTextColor.getColorForState(currentKeyDrawableState, Color.TRANSPARENT)
@@ -583,15 +583,15 @@ class KeyboardView(
 
                 val symbolLabel = key.symbolLabel
                 if (showKeySymbol && symbolLabel.isNotEmpty()) {
-                    val symbolX = centerX + key.keySymbolOffsetX
+                    val symbolX = centerX + sp(key.keySymbolOffsetX)
                     val symbolBaseline = -fontMetrics.top
-                    canvas.drawText(symbolLabel, symbolX, symbolBaseline + key.keySymbolOffsetY, paint)
+                    canvas.drawText(symbolLabel, symbolX, symbolBaseline + sp(key.keySymbolOffsetY), paint)
                 }
                 val hintLabel = key.hint
                 if (showKeyHint && hintLabel.isNotEmpty()) {
-                    val hintX = centerX + key.keyHintOffsetX
+                    val hintX = centerX + sp(key.keyHintOffsetX)
                     val hintBaseline = -fontMetrics.bottom
-                    canvas.drawText(hintLabel, hintX, hintBaseline + key.height + key.keyHintOffsetY, paint)
+                    canvas.drawText(hintLabel, hintX, hintBaseline + key.height + sp(key.keyHintOffsetY), paint)
                 }
             }
         }
