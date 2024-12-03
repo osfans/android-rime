@@ -202,7 +202,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                         2 -> Locale(latinLocale[0], latinLocale[1])
                         else -> Locale.US
                     }
-                updateRimeOption(this)
                 Timber.d("Trime.onCreate  completed")
             }
         } catch (e: Exception) {
@@ -428,6 +427,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     ) {
         Timber.d("onStartInputView: restarting=%s", restarting)
         postRimeJob {
+            updateRimeOption(this)
             InputFeedbackManager.loadSoundEffects(this@TrimeInputMethodService)
             InputFeedbackManager.resetPlayProgress()
             isComposable =

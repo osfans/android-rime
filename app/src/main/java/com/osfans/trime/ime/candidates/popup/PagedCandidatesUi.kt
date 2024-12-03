@@ -26,6 +26,8 @@ class PagedCandidatesUi(
 ) : Ui {
     private var menu = RimeProto.Context.Menu()
 
+    private var isHorizontal = true
+
     sealed class UiHolder(
         open val ui: Ui,
     ) : RecyclerView.ViewHolder(ui.root) {
@@ -78,7 +80,7 @@ class PagedCandidatesUi(
                     is UiHolder.Pagination -> {
                         holder.ui.update(menu)
                         holder.ui.root.updateLayoutParams<FlexboxLayoutManager.LayoutParams> {
-                            alignSelf = AlignItems.CENTER
+                            alignSelf = if (isHorizontal) AlignItems.CENTER else AlignItems.STRETCH
                         }
                     }
                 }
@@ -92,8 +94,6 @@ class PagedCandidatesUi(
     private val candidatesLayoutManager =
         FlexboxLayoutManager(ctx).apply {
             flexWrap = FlexWrap.WRAP
-            flexDirection = FlexDirection.ROW
-            alignItems = AlignItems.BASELINE
         }
 
     override val root =
@@ -106,8 +106,21 @@ class PagedCandidatesUi(
             layoutManager = candidatesLayoutManager
         }
 
-    fun update(menu: RimeProto.Context.Menu) {
+    fun update(
+        menu: RimeProto.Context.Menu,
+        isHorizontal: Boolean,
+    ) {
         this.menu = menu
+        this.isHorizontal = isHorizontal
+        candidatesLayoutManager.apply {
+            if (isHorizontal) {
+                flexDirection = FlexDirection.ROW
+                alignItems = AlignItems.BASELINE
+            } else {
+                flexDirection = FlexDirection.COLUMN
+                alignItems = AlignItems.STRETCH
+            }
+        }
         candidatesAdapter.submitList(menu.candidates.toList())
     }
 }

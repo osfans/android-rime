@@ -66,6 +66,9 @@ class CandidatesView(
     private fun updateUi() {
         if (evaluateVisibility()) {
             preeditUi.update(inputComposition)
+            // if CandidatesView can be shown, rime engine is ready most of the time,
+            // so it should be safety to get option immediately
+            val isHorizontalLayout = rime.run { getRuntimeOption("_horizontal") }
             when (candidatesMode) {
                 PopupCandidatesMode.CURRENT_PAGE -> {
                     candidatesUi.root.let {
@@ -73,14 +76,14 @@ class CandidatesView(
                             it.visibility = View.VISIBLE
                         }
                     }
-                    candidatesUi.update(menu)
+                    candidatesUi.update(menu, isHorizontalLayout)
                 }
 
                 PopupCandidatesMode.PREEDIT_ONLY -> {
                     candidatesUi.root.let {
                         if (it.visibility != View.GONE) {
                             it.visibility = View.GONE
-                            candidatesUi.update(RimeProto.Context.Menu())
+                            candidatesUi.update(RimeProto.Context.Menu(), isHorizontalLayout)
                         }
                     }
                 }
