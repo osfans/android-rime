@@ -243,7 +243,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                         // TODO: look for better workaround for this
                         if (keyCode == KeyEvent.KEYCODE_ENTER) {
                             handleReturnKey()
-                            return@event
+                            return
                         }
                         val eventTime = SystemClock.uptimeMillis()
                         if (it.up) {
@@ -722,7 +722,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         val up = event.action == MotionEvent.ACTION_UP
         val modifiers = KeyModifiers.fromKeyEvent(event)
         val charCode = event.unicodeChar
-        if (charCode > 0 && charCode != '\t'.code) {
+        if (charCode > 0 && charCode != '\t'.code && charCode != '\n'.code) {
             postRimeJob {
                 processKey(charCode, modifiers.modifiers, event.scanCode, up)
             }
