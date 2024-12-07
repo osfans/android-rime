@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "key_table.h"
+
 #include <rime/key_table.h>
 
 #include "jni-utils.h"
@@ -18,4 +20,10 @@ Java_com_osfans_trime_core_Rime_getRimeKeycodeByName(JNIEnv *env,
                                                      jclass /* thiz */,
                                                      jstring name) {
   return RimeGetKeycodeByName(CString(env, name));
+}
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_osfans_trime_core_Rime_getRimeKeyUnicode(JNIEnv *env, jclass clazz,
+                                                  jint keycode) {
+  return RimeGetKeyUnicode(keycode);
 }

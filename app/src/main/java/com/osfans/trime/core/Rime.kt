@@ -424,6 +424,9 @@ class Rime :
         external fun getRimeKeycodeByName(name: String): Int
 
         @JvmStatic
+        external fun getRimeKeyUnicode(keycode: Int): Int
+
+        @JvmStatic
         external fun getAvailableRimeSchemaList(): Array<SchemaItem>
 
         @JvmStatic
@@ -467,7 +470,8 @@ class Rime :
             value: KeyValue,
             modifiers: KeyModifiers,
         ) {
-            handleRimeEvent(RimeEvent.EventType.Key, RimeEvent.KeyEvent.Data(value, modifiers, value.value))
+            val unicode = getRimeKeyUnicode(value.value)
+            handleRimeEvent(RimeEvent.EventType.Key, RimeEvent.KeyEvent.Data(value, modifiers, unicode))
         }
 
         private fun <T> handleRimeEvent(
