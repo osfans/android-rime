@@ -16,7 +16,6 @@ import android.text.InputType
 import android.view.InputDevice
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
@@ -245,7 +244,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                             return
                         }
                         val eventTime = SystemClock.uptimeMillis()
-                        if (it.up) {
+                        if (it.modifiers.release) {
                             sendUpKeyEvent(eventTime, keyCode, it.modifiers.metaState)
                         } else {
                             sendDownKeyEvent(eventTime, keyCode, it.modifiers.metaState)
@@ -714,19 +713,18 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
 
     private fun forwardKeyEvent(event: KeyEvent): Boolean {
-        val up = event.action == MotionEvent.ACTION_UP
         val modifiers = KeyModifiers.fromKeyEvent(event)
         val charCode = event.unicodeChar
         if (charCode > 0 && charCode != '\t'.code && charCode != '\n'.code) {
             postRimeJob {
-                processKey(charCode, modifiers.modifiers, up)
+                processKey(charCode, modifiers.modifiers)
             }
             return true
         }
         val keyVal = KeyValue.fromKeyEvent(event)
         if (keyVal.value != RimeKeyMapping.RimeKey_VoidSymbol) {
             postRimeJob {
-                processKey(keyVal, modifiers, up)
+                processKey(keyVal, modifiers)
             }
             return true
         }
