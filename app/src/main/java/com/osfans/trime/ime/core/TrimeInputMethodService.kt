@@ -250,7 +250,11 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                             sendDownKeyEvent(eventTime, keyCode, it.modifiers.metaState)
                         }
                     } else {
-                        Timber.w("Unhandled Rime KeyEvent: $it")
+                        if (!it.modifiers.release && it.unicode > 0) {
+                            commitText(Char(it.unicode).toString())
+                        } else {
+                            Timber.w("Unhandled Rime KeyEvent: $it")
+                        }
                     }
                 }
             else -> {}
