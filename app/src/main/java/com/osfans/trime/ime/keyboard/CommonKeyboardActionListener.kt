@@ -15,7 +15,6 @@ import com.osfans.trime.core.KeyModifiers
 import com.osfans.trime.core.Rime
 import com.osfans.trime.core.RimeApi
 import com.osfans.trime.core.RimeKeyMapping
-import com.osfans.trime.core.ScancodeMapping
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.daemon.launchOnReady
 import com.osfans.trime.data.prefs.AppPrefs
@@ -261,9 +260,8 @@ class CommonKeyboardActionListener(
                         .takeIf { it != RimeKeyMapping.RimeKey_VoidSymbol }
                         ?: Rime.getRimeKeycodeByName(Keycode.keyNameOf(keyEventCode))
                 val modifiers = KeyModifiers.fromMetaState(metaState).modifiers
-                val code = ScancodeMapping.keyCodeToScancode(keyEventCode)
                 service.postRimeJob {
-                    if (processKey(value, modifiers, code)) {
+                    if (processKey(value, modifiers)) {
                         shouldReleaseKey = true
                         Timber.d("handleKey: processKey")
                         return@postRimeJob

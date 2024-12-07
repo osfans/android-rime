@@ -42,7 +42,6 @@ import com.osfans.trime.core.RimeEvent
 import com.osfans.trime.core.RimeKeyMapping
 import com.osfans.trime.core.RimeNotification
 import com.osfans.trime.core.RimeProto
-import com.osfans.trime.core.ScancodeMapping
 import com.osfans.trime.daemon.RimeDaemon
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.data.db.DraftHelper
@@ -252,11 +251,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                             sendDownKeyEvent(eventTime, keyCode, it.modifiers.metaState)
                         }
                     } else {
-                        if (!it.up && it.unicode > 0) {
-                            commitText(Char(it.unicode).toString())
-                        } else {
-                            Timber.w("Unhandled Rime KeyEvent: $it")
-                        }
+                        Timber.w("Unhandled Rime KeyEvent: $it")
                     }
                 }
             else -> {}
@@ -603,7 +598,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                 0,
                 metaState,
                 KeyCharacterMap.VIRTUAL_KEYBOARD,
-                ScancodeMapping.keyCodeToScancode(keyEventCode),
+                0,
                 KeyEvent.FLAG_SOFT_KEYBOARD or KeyEvent.FLAG_KEEP_TOUCH_MODE,
                 InputDevice.SOURCE_KEYBOARD,
             ),
@@ -625,7 +620,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                 0,
                 metaState,
                 KeyCharacterMap.VIRTUAL_KEYBOARD,
-                ScancodeMapping.keyCodeToScancode(keyEventCode),
+                0,
                 KeyEvent.FLAG_SOFT_KEYBOARD or KeyEvent.FLAG_KEEP_TOUCH_MODE,
                 InputDevice.SOURCE_KEYBOARD,
             ),
@@ -724,14 +719,14 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         val charCode = event.unicodeChar
         if (charCode > 0 && charCode != '\t'.code && charCode != '\n'.code) {
             postRimeJob {
-                processKey(charCode, modifiers.modifiers, event.scanCode, up)
+                processKey(charCode, modifiers.modifiers, up)
             }
             return true
         }
         val keyVal = KeyValue.fromKeyEvent(event)
         if (keyVal.value != RimeKeyMapping.RimeKey_VoidSymbol) {
             postRimeJob {
-                processKey(keyVal, modifiers, event.scanCode, up)
+                processKey(keyVal, modifiers, up)
             }
             return true
         }
