@@ -65,6 +65,8 @@ value class KeyModifiers(
     val meta get() = has(KeyModifier.Meta)
     val capsLock get() = has(KeyModifier.Lock)
 
+    val release get() = has(KeyModifier.Release)
+
     val metaState: Int get() {
         var metaState = 0
         if (alt) metaState = KeyEvent.META_ALT_ON or KeyEvent.META_ALT_LEFT_ON

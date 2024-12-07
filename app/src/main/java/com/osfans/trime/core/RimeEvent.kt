@@ -31,7 +31,6 @@ sealed class RimeEvent<T>(
             val value: KeyValue,
             val modifiers: KeyModifiers,
             val unicode: Int,
-            val up: Boolean,
         )
     }
 
