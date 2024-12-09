@@ -6,8 +6,6 @@ package com.osfans.trime.ime.composition
 
 import android.graphics.RectF
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.View.MeasureSpec
@@ -70,7 +68,6 @@ class ComposingPopupWindow(
         }
 
     private val anchorPosition = RectF()
-    private val positionHandler = Handler(Looper.getMainLooper())
 
     private val positionUpdater =
         Runnable {
@@ -124,13 +121,7 @@ class ComposingPopupWindow(
                     y = (if (bottom + selfHeight > parentHeight) top - selfHeight else bottom).toInt()
                 }
             }
-            if (!window.isShowing) {
-                window.showAtLocation(parentView, Gravity.NO_GRAVITY, x, y)
-            } else {
-                /* must use the width and height of popup window itself here directly,
-                 * otherwise the width and height cannot be updated! */
-                window.update(x, y, -1, -1)
-            }
+            window.update(x, y, -1, -1)
         }
 
     private val baseCallbackHandler =
@@ -163,12 +154,13 @@ class ComposingPopupWindow(
 
     fun dismiss() {
         window.dismiss()
-        positionHandler.removeCallbacks(positionUpdater)
+        root.removeCallbacks(positionUpdater)
         decorLocationUpdated = false
     }
 
     private fun updatePosition() {
-        positionHandler.post(positionUpdater)
+        window.showAtLocation(parentView, Gravity.NO_GRAVITY, 0, 0)
+        root.post(positionUpdater)
     }
 
     private val decorLocation = floatArrayOf(0f, 0f)
