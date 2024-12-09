@@ -29,6 +29,7 @@ import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.bar.QuickBar
 import com.osfans.trime.ime.candidates.compact.CompactCandidateModule
+import com.osfans.trime.ime.composition.PreeditModule
 import com.osfans.trime.ime.dependency.InputComponent
 import com.osfans.trime.ime.dependency.create
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
@@ -102,6 +103,7 @@ class InputView(
     private val enterKeyLabel = inputComponent.enterKeyLabel
     private val windowManager = inputComponent.windowManager
     private val quickBar: QuickBar = inputComponent.quickBar
+    private val preedit: PreeditModule = inputComponent.preedit
     private val keyboardWindow: KeyboardWindow = inputComponent.keyboardWindow
     private val liquidKeyboard: LiquidKeyboard = inputComponent.liquidKeyboard
     private val compactCandidate: CompactCandidateModule = inputComponent.compactCandidate
@@ -109,6 +111,7 @@ class InputView(
 
     private fun addBroadcastReceivers() {
         broadcaster.addReceiver(quickBar)
+        broadcaster.addReceiver(preedit)
         broadcaster.addReceiver(keyboardWindow)
         broadcaster.addReceiver(liquidKeyboard)
         broadcaster.addReceiver(compactCandidate)
