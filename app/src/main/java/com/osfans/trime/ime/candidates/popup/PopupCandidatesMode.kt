@@ -11,6 +11,8 @@ import com.osfans.trime.data.prefs.PreferenceDelegateEnum
 enum class PopupCandidatesMode(
     override val stringRes: Int,
 ) : PreferenceDelegateEnum {
-    CURRENT_PAGE(R.string.current_page_of_candidates),
-    PREEDIT_ONLY(R.string.preedit_only),
+    SYSTEM_DEFAULT(R.string.system_default),
+    INPUT_DEVICE(R.string.depends_on_input_device),
+    FORCE_SHOW(R.string.force_show),
+    DISABLED(R.string.disable),
 }

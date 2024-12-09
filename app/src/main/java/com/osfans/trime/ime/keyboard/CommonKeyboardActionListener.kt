@@ -201,7 +201,6 @@ class CommonKeyboardActionListener(
                             else -> {
                                 ShortcutUtils.call(service, action.command, arg)?.let {
                                     service.commitText(it)
-                                    service.updateComposing()
                                 }
                             }
                         }

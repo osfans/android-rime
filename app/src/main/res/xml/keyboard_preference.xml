@@ -151,7 +151,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
             app:iconSpaceReserved="false"
             app:max="100"
             app:systemDefaultValue="-1"
-            app:systemDefaultValueText="@string/pref__system_default"
+            app:systemDefaultValueText="@string/system_default"
             app:unit="%"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
@@ -167,7 +167,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
             app:iconSpaceReserved="false"
             app:max="100"
             app:systemDefaultValue="-1"
-            app:systemDefaultValueText="@string/pref__system_default"
+            app:systemDefaultValueText="@string/system_default"
             app:unit="@string/unit__time_ms"
             app:useSimpleSummaryProvider="true" />
         <com.osfans.trime.ui.components.DialogSeekBarPreference
@@ -179,7 +179,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
             app:iconSpaceReserved="false"
             app:max="255"
             app:systemDefaultValue="-1"
-            app:systemDefaultValueText="@string/pref__system_default"
+            app:systemDefaultValueText="@string/system_default"
             app:useSimpleSummaryProvider="true" />
         <!--        <SwitchPreference android:key="key_vibrate_default_amplitude" android:title="@string/key_vibrate_default_amplitude"/>-->
         <SwitchPreferenceCompat

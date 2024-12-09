@@ -225,7 +225,6 @@ class LiquidKeyboard(
             ContextCompat.getMainExecutor(service).execute {
                 TabManager.setTabExited()
                 windowManager.attachWindow(KeyboardWindow)
-                service.updateComposing()
             }
         }
     }

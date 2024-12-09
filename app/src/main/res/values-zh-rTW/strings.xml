@@ -120,7 +120,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="about__app_info">應用資訊</string>
     <string name="about__support">支援</string>
     <string name="about__open_source_licenses">開放源代碼軟體許可</string>
-    <string name="pref__system_default">系統預設</string>
+    <string name="system_default">系統預設</string>
     <string name="keyboard__key_swipe_travel_title">觸發滑動手勢的最短距離</string>
     <string name="keyboard__hook_candidate">點擊候選詞</string>
     <string name="keyboard__hook_candidate_commit">點擊候選詞後，模擬空格鍵完成上屏(暫未實現)</string>
@@ -266,4 +266,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="commit_text_preview">首選詞預覽</string>
     <string name="raw_input">原始輸入碼</string>
     <string name="composing_text_mode">在程式中顯示撰寫文字</string>
+    <string name="depends_on_input_device">視輸入設備而定</string>
+    <string name="force_show">強制顯示</string>
+    <string name="follow_cursor">跟隨游標</string>
+    <string name="bottom_left">左下</string>
+    <string name="bottom_right">右下</string>
+    <string name="top_left">左上</string>
+    <string name="top_right">右上</string>
+    <string name="display_position">顯示位置</string>
 </resources>
