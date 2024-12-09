@@ -22,13 +22,15 @@ class InputDeviceManager {
     private val candidatesMode by AppPrefs.defaultInstance().candidates.mode
 
     private fun setupInputViewCallback(isVirtual: Boolean) {
-        inputView?.handleCallback = isVirtual
+        val shouldSetupInputView = isVirtual && candidatesMode != PopupCandidatesMode.FORCE_SHOW
+        inputView?.handleCallback = shouldSetupInputView
         inputView?.visibility = if (isVirtual) View.VISIBLE else View.GONE
     }
 
     private fun setupComposingPopupWindowCallback(isVirtual: Boolean) {
         val shouldSetupWindow = !isVirtual || candidatesMode == PopupCandidatesMode.FORCE_SHOW
         composingPopupWindow?.handleCallback = shouldSetupWindow
+        composingPopupWindow?.useVirtualKeyboard = isVirtual
         // dismiss ComposingPopupWindow when entering virtual keyboard mode,
         // but preserve the visibility when entering physical keyboard mode (in case it's empty)
         if (!shouldSetupWindow) {

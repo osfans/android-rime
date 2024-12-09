@@ -33,9 +33,11 @@ class ComposingPopupWindow(
     private val service: TrimeInputMethodService,
     private val rime: RimeSession,
     private val theme: Theme,
-    private val anchorView: View,
+    private val parentView: View,
 ) {
     val root = CandidatesView(service, rime, theme)
+
+    var useVirtualKeyboard: Boolean = true
 
     // 悬浮窗口彈出位置
     private val position by AppPrefs.defaultInstance().candidates.position
@@ -72,56 +74,62 @@ class ComposingPopupWindow(
 
     private val positionUpdater =
         Runnable {
-            anchorView.let { anchor ->
-                val x: Int
-                val y: Int
-                root.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
-                root.requestLayout()
-                val selfWidth = root.width
-                val selfHeight = root.height
-                val parentWidth = anchor.width
-                val parentHeight = anchor.height
+            val x: Int
+            val y: Int
+            root.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
+            root.requestLayout()
+            val selfWidth = root.width
+            val selfHeight = root.height
+            val (horizontal, top, _, bottom) = anchorPosition
+            val parentWidth = parentView.width
+            val parentHeight = parentView.height
+            val (_, inputViewHeight) =
+                intArrayOf(0, 0)
+                    .also { service.inputView?.keyboardView?.getLocationInWindow(it) }
 
-                val minX = 0
-                val minY = 0
-                val maxX = parentWidth - selfWidth
-                val maxY = parentHeight - selfHeight
-                when (position) {
-                    PopupPosition.TOP_RIGHT -> {
-                        x = maxX
-                        y = minY
-                    }
-                    PopupPosition.TOP_LEFT -> {
-                        x = minX
-                        y = minY
-                    }
-                    PopupPosition.BOTTOM_RIGHT -> {
-                        x = maxX
-                        y = maxY
-                    }
-                    PopupPosition.BOTTOM_LEFT -> {
-                        x = minX
-                        y = maxY
-                    }
-                    PopupPosition.FOLLOW -> {
-                        val (horizontal, top, _, bottom) = anchorPosition
-                        x =
-                            if (root.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
-                                val rtlOffset = parentWidth - horizontal
-                                if (rtlOffset + selfWidth > parentWidth) selfWidth - parentWidth else -rtlOffset
-                            } else {
-                                if (horizontal + selfWidth > parentWidth) parentWidth - selfWidth else horizontal
-                            }.toInt()
-                        y = (if (bottom + selfHeight > parentHeight) top - selfHeight else bottom).toInt()
-                    }
-                }
-                if (!window.isShowing) {
-                    window.showAtLocation(anchor, Gravity.NO_GRAVITY, x, y)
+            val minX = 0
+            val minY = 0
+            val maxX = parentWidth - selfWidth
+            val maxY =
+                if (useVirtualKeyboard) {
+                    inputViewHeight - selfHeight
                 } else {
-                    /* must use the width and height of popup window itself here directly,
-                     * otherwise the width and height cannot be updated! */
-                    window.update(x, y, -1, -1)
+                    parentHeight - selfHeight
                 }
+            when (position) {
+                PopupPosition.TOP_RIGHT -> {
+                    x = maxX
+                    y = minY
+                }
+                PopupPosition.TOP_LEFT -> {
+                    x = minX
+                    y = minY
+                }
+                PopupPosition.BOTTOM_RIGHT -> {
+                    x = maxX
+                    y = maxY
+                }
+                PopupPosition.BOTTOM_LEFT -> {
+                    x = minX
+                    y = maxY
+                }
+                PopupPosition.FOLLOW -> {
+                    x =
+                        if (root.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
+                            val rtlOffset = parentWidth - horizontal
+                            if (rtlOffset + selfWidth > parentWidth) selfWidth - parentWidth else -rtlOffset
+                        } else {
+                            if (horizontal + selfWidth > parentWidth) parentWidth - selfWidth else horizontal
+                        }.toInt()
+                    y = (if (bottom + selfHeight > parentHeight) top - selfHeight else bottom).toInt()
+                }
+            }
+            if (!window.isShowing) {
+                window.showAtLocation(parentView, Gravity.NO_GRAVITY, x, y)
+            } else {
+                /* must use the width and height of popup window itself here directly,
+                 * otherwise the width and height cannot be updated! */
+                window.update(x, y, -1, -1)
             }
         }
 
