@@ -5,6 +5,7 @@
 package com.osfans.trime.ime.core
 
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Intent
@@ -19,12 +20,10 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
-import android.view.WindowManager
 import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import androidx.annotation.Keep
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -49,13 +48,14 @@ import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.ime.broadcast.IntentReceiver
-import com.osfans.trime.ime.enums.FullscreenMode
+import com.osfans.trime.ime.composition.ComposingPopupWindow
 import com.osfans.trime.ime.keyboard.InitializationUi
 import com.osfans.trime.ime.keyboard.InputFeedbackManager
 import com.osfans.trime.util.ShortcutUtils
 import com.osfans.trime.util.findSectionFrom
-import com.osfans.trime.util.isLandscape
+import com.osfans.trime.util.forceShowSelf
 import com.osfans.trime.util.isNightMode
+import com.osfans.trime.util.monitorCursorAnchor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -65,7 +65,6 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 import splitties.bitflags.hasFlag
 import splitties.systemservices.inputMethodManager
-import splitties.views.gravityBottom
 import timber.log.Timber
 import java.util.Locale
 
@@ -78,10 +77,13 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     private var normalTextEditor = false
     private val prefs: AppPrefs
         get() = AppPrefs.defaultInstance()
+    private lateinit var decorView: View
+    private lateinit var contentView: FrameLayout
     var inputView: InputView? = null
+    private var composingPopupWindow: ComposingPopupWindow? = null
+    private val inputDeviceManager = InputDeviceManager()
     private var initializationUi: InitializationUi? = null
     private var mIntentReceiver: IntentReceiver? = null
-    private var isComposable: Boolean = false
     private val locales = Array(2) { Locale.getDefault() }
 
     var lastCommittedText: CharSequence = ""
@@ -168,6 +170,8 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         ThemeManager.addOnChangedListener(onThemeChangeListener)
         ColorManager.addOnChangedListener(onColorChangeListener)
         super.onCreate()
+        decorView = window.window!!.decorView
+        contentView = decorView.findViewById(android.R.id.content)
         instance = this
         // MUST WRAP all code within Service onCreate() in try..catch to prevent any crash loops
         try {
@@ -216,11 +220,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                         InputFeedbackManager.ttsLanguage =
                             locales[if (value) 1 else 0]
                     }
-                    "_hide_bar",
-                    "_hide_candidate",
-                    -> {
-                        setCandidatesViewShown(isComposable && !value)
-                    }
                 }
             }
             is RimeEvent.IpcResponseEvent ->
@@ -232,7 +231,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                     if (ctx != null) {
                         updateComposingText(ctx)
                     }
-                    updateComposing()
                 }
             is RimeEvent.KeyEvent ->
                 it.data.let event@{
@@ -265,10 +263,13 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         commitTextByChar(checkNotNull(ShortcutUtils.pasteFromClipboard(this)).toString())
     }
 
-    private fun setupInputView(theme: Theme): InputView {
-        updateComposing() // 切換主題時刷新候選
+    private fun setupInputViews(theme: Theme): InputView {
+        composingPopupWindow?.cancelJob()
         val newInputView = InputView(this, rime, theme)
+        val newComposingWindow = ComposingPopupWindow(this, rime, theme, contentView)
         inputView = newInputView
+        composingPopupWindow = newComposingWindow
+        inputDeviceManager.setComponents(newInputView, newComposingWindow)
         return newInputView
     }
 
@@ -276,7 +277,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
      *
      * 重置鍵盤、候選條、狀態欄等 !!注意，如果其中調用Rime.setOption，切換方案會卡住  */
     fun recreateInputView(theme: Theme) {
-        setInputView(setupInputView(theme))
+        setInputView(setupInputViews(theme))
         initializationUi = null
     }
 
@@ -322,7 +323,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
 
     override fun onUpdateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo) {
-        inputView?.updateCursorAnchorInfo(cursorAnchorInfo)
+        composingPopupWindow?.updateCursorAnchorInfo(cursorAnchorInfo, decorView)
     }
 
     override fun onUpdateSelection(
@@ -346,7 +347,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             if (newSelEnd in candidatesStart..<candidatesEnd) {
                 val n = newSelEnd - candidatesStart
                 Rime.setCaretPos(n)
-                updateComposing()
             }
         }
         if (candidatesStart == -1 && candidatesEnd == -1 && newSelStart == 0 && newSelEnd == 0) {
@@ -357,21 +357,35 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
 
     override fun onComputeInsets(outInsets: Insets) {
-        val (_, y) =
-            intArrayOf(0, 0).also {
-                if (inputView?.keyboardView?.isVisible == true) {
-                    inputView?.keyboardView?.getLocationInWindow(it)
-                } else {
-                    initializationUi?.initial?.getLocationInWindow(it)
+        if (inputDeviceManager.isVirtualKeyboard) {
+            val (_, y) =
+                intArrayOf(0, 0).also {
+                    if (inputView?.keyboardView?.isVisible == true) {
+                        inputView?.keyboardView?.getLocationInWindow(it)
+                    } else {
+                        initializationUi?.initial?.getLocationInWindow(it)
+                    }
                 }
+            outInsets.apply {
+                contentTopInsets = y
+                visibleTopInsets = y
+                touchableInsets = Insets.TOUCHABLE_INSETS_VISIBLE
             }
-        outInsets.apply {
-            contentTopInsets = y
-            touchableInsets = Insets.TOUCHABLE_INSETS_CONTENT
-            touchableRegion.setEmpty()
-            visibleTopInsets = y
+        } else {
+            val h = decorView.height
+            outInsets.apply {
+                contentTopInsets = h
+                visibleTopInsets = h
+                touchableInsets = Insets.TOUCHABLE_INSETS_VISIBLE
+            }
         }
     }
+
+    // always show InputView since we delegate CandidatesView's visibility to it
+    @SuppressLint("MissingSuperCall")
+    override fun onEvaluateInputViewShown() = true
+
+    fun superEvaluateInputViewShown() = super.onEvaluateInputViewShown()
 
     override fun onCreateInputView(): View {
         Timber.d("onCreateInputView")
@@ -385,14 +399,11 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
 
     override fun setInputView(view: View) {
-        val inputArea =
-            window.window!!
-                .decorView
-                .findViewById<FrameLayout>(android.R.id.inputArea)
+        super.setInputView(view)
+        val inputArea = contentView.findViewById<FrameLayout>(android.R.id.inputArea)
         inputArea.updateLayoutParams<ViewGroup.LayoutParams> {
             height = ViewGroup.LayoutParams.MATCH_PARENT
         }
-        super.setInputView(view)
         view.updateLayoutParams<ViewGroup.LayoutParams> {
             height = ViewGroup.LayoutParams.MATCH_PARENT
         }
@@ -428,22 +439,17 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             updateRimeOption(this)
             InputFeedbackManager.loadSoundEffects(this@TrimeInputMethodService)
             InputFeedbackManager.resetPlayProgress()
-            isComposable =
-                arrayOf(
-                    InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE,
-                    InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
-                    InputType.TYPE_TEXT_VARIATION_PASSWORD,
-                    InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,
-                    InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS,
-                    InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD,
-                ).none { it == attribute.inputType and InputType.TYPE_MASK_VARIATION }
-            isComposable = isComposable && !rime.run { isEmpty() }
-            updateComposing()
             if (prefs.other.showStatusBarIcon) {
                 showStatusIcon(R.drawable.ic_trime_status) // 狀態欄圖標
             }
             ContextCompat.getMainExecutor(this@TrimeInputMethodService).execute {
-                inputView?.startInput(attribute, restarting)
+                if (inputDeviceManager.evaluateOnStartInputView(attribute, this@TrimeInputMethodService)) {
+                    inputView?.startInput(attribute, restarting)
+                } else {
+                    if (!restarting) {
+                        currentInputConnection?.monitorCursorAnchor()
+                    }
+                }
             }
             when (attribute.inputType and InputType.TYPE_MASK_VARIATION) {
                 InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
@@ -517,6 +523,11 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
 
     override fun onFinishInputView(finishingInput: Boolean) {
         Timber.d("onFinishInputView: finishingInput=$finishingInput")
+        inputDeviceManager.onFinishInputView()
+        currentInputConnection?.apply {
+            finishComposingText()
+            monitorCursorAnchor(false)
+        }
         postRimeJob {
             if (normalTextEditor) {
                 DraftHelper.onInputEventChanged()
@@ -739,12 +750,32 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     override fun onKeyDown(
         keyCode: Int,
         event: KeyEvent,
-    ): Boolean = forwardKeyEvent(event) || super.onKeyDown(keyCode, event)
+    ): Boolean {
+        if (inputDeviceManager.evaluateOnKeyDown(event, this)) {
+            forceShowSelf()
+        }
+        return forwardKeyEvent(event) || super.onKeyDown(keyCode, event)
+    }
 
     override fun onKeyUp(
         keyCode: Int,
         event: KeyEvent,
     ): Boolean = forwardKeyEvent(event) || super.onKeyUp(keyCode, event)
+
+    // Added in API level 14, deprecated in 29
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+    override fun onViewClicked(focusChanged: Boolean) {
+        super.onViewClicked(focusChanged)
+        if (Build.VERSION.SDK_INT < 34) {
+            inputDeviceManager.evaluateOnViewClicked(this)
+        }
+    }
+
+    @TargetApi(34)
+    override fun onUpdateEditorToolType(toolType: Int) {
+        super.onUpdateEditorToolType(toolType)
+        inputDeviceManager.evaluateOnUpdateEditorToolType(toolType, this)
+    }
 
     fun switchToPrevIme() {
         try {
@@ -901,67 +932,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         }
     }
 
-    /** 更新Rime的中西文狀態、編輯區文本  */
-    fun updateComposing() {
-        inputView?.updateComposing(currentInputConnection)
-        if (!onEvaluateInputViewShown()) setCandidatesViewShown(isComposable) // 實體鍵盤打字時顯示候選欄
-    }
-
-    override fun onEvaluateFullscreenMode(): Boolean {
-        val config = resources.configuration
-        if (config == null || !resources.configuration.isLandscape()) return false
-        return when (prefs.keyboard.fullscreenMode) {
-            FullscreenMode.AUTO_SHOW -> {
-                Timber.d("FullScreen: Auto")
-                val ei = currentInputEditorInfo
-                if (ei != null && ei.imeOptions and EditorInfo.IME_FLAG_NO_FULLSCREEN != 0) {
-                    return false
-                }
-                Timber.d("FullScreen: Always")
-                true
-            }
-
-            FullscreenMode.ALWAYS_SHOW -> {
-                Timber.d("FullScreen: Always")
-                true
-            }
-
-            FullscreenMode.NEVER_SHOW -> {
-                Timber.d("FullScreen: Never")
-                false
-            }
-        }
-    }
-
-    override fun updateFullscreenMode() {
-        super.updateFullscreenMode()
-        updateSoftInputWindowLayoutParameters()
-    }
-
-    /** Updates the layout params of the window and input view.  */
-    private fun updateSoftInputWindowLayoutParameters() {
-        val w = window.window ?: return
-        if (inputView != null) {
-            val layoutHeight =
-                if (isFullscreenMode) {
-                    WindowManager.LayoutParams.WRAP_CONTENT
-                } else {
-                    WindowManager.LayoutParams.MATCH_PARENT
-                }
-            val inputArea = w.decorView.findViewById<FrameLayout>(android.R.id.inputArea)
-            inputArea.updateLayoutParams {
-                height = layoutHeight
-                if (this is FrameLayout.LayoutParams) {
-                    this.gravity = inputArea.gravityBottom
-                } else if (this is LinearLayout.LayoutParams) {
-                    this.gravity = inputArea.gravityBottom
-                }
-            }
-            inputView?.updateLayoutParams {
-                height = layoutHeight
-            }
-        }
-    }
+    override fun onEvaluateFullscreenMode(): Boolean = false
 
     companion object {
         /** Delimiter regex to split language/locale tags. */

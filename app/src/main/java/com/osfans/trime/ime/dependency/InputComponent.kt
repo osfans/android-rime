@@ -11,7 +11,6 @@ import com.osfans.trime.ime.bar.QuickBar
 import com.osfans.trime.ime.broadcast.EnterKeyLabelModule
 import com.osfans.trime.ime.broadcast.InputBroadcaster
 import com.osfans.trime.ime.candidates.compact.CompactCandidateModule
-import com.osfans.trime.ime.composition.CompositionPopupWindow
 import com.osfans.trime.ime.core.InputView
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
@@ -35,7 +34,6 @@ abstract class InputComponent(
     abstract val commonKeyboardActionListener: CommonKeyboardActionListener
     abstract val enterKeyLabel: EnterKeyLabelModule
     abstract val quickBar: QuickBar
-    abstract val composition: CompositionPopupWindow
     abstract val windowManager: BoardWindowManager
     abstract val preview: KeyPreviewChoreographer
     abstract val keyboardWindow: KeyboardWindow

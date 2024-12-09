@@ -10,8 +10,8 @@ import androidx.preference.PreferenceManager
 import com.osfans.trime.R
 import com.osfans.trime.data.base.DataManager
 import com.osfans.trime.ime.candidates.popup.PopupCandidatesMode
+import com.osfans.trime.ime.composition.PopupPosition
 import com.osfans.trime.ime.core.ComposingTextMode
-import com.osfans.trime.ime.enums.FullscreenMode
 import com.osfans.trime.util.appContext
 import java.lang.ref.WeakReference
 
@@ -115,7 +115,6 @@ class AppPrefs(
             const val LANDSCAPE_MODE = "keyboard__landscape_mode"
             const val SPLIT_SPACE_PERCENT = "keyboard__split_space"
             const val SWITCH_ARROW_ENABLED = "keyboard__show_switch_arrow"
-            const val FULLSCREEN_MODE = "keyboard__fullscreen_mode"
 
             const val HOOK_CTRL_A = "keyboard__hook_ctrl_a"
             const val HOOK_CTRL_CV = "keyboard__hook_ctrl_cv"
@@ -144,7 +143,6 @@ class AppPrefs(
             const val REPEAT_INTERVAL = "keyboard__key_repeat_interval"
         }
 
-        var fullscreenMode by enum(FULLSCREEN_MODE, FullscreenMode.AUTO_SHOW)
         val softCursorEnabled by bool(SOFT_CURSOR_ENABLED, true)
         val popupKeyPressEnabled = bool(POPUP_KEY_PRESS_ENABLED, false)
         val switchesEnabled by bool(SWITCHES_ENABLED, true)
@@ -189,9 +187,11 @@ class AppPrefs(
     ) : PreferenceDelegateOwner(shared, R.string.candidates_window) {
         companion object {
             const val MODE = "candidates__mode"
+            const val POSITION = "candidates__position"
         }
 
-        val mode = enum(R.string.candidates_mode, MODE, PopupCandidatesMode.PREEDIT_ONLY)
+        val mode = enum(R.string.candidates_mode, MODE, PopupCandidatesMode.DISABLED)
+        val position = enum(R.string.display_position, POSITION, PopupPosition.BOTTOM_LEFT)
     }
 
     /**

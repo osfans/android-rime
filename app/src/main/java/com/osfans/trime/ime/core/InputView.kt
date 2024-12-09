@@ -11,9 +11,7 @@ import android.os.Build
 import android.view.View
 import android.view.View.OnClickListener
 import android.view.WindowManager
-import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputConnection
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -31,7 +29,6 @@ import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.bar.QuickBar
 import com.osfans.trime.ime.candidates.compact.CompactCandidateModule
-import com.osfans.trime.ime.composition.CompositionPopupWindow
 import com.osfans.trime.ime.dependency.InputComponent
 import com.osfans.trime.ime.dependency.create
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
@@ -97,7 +94,6 @@ class InputView(
             setOnClickListener(placeholderListener)
         }
 
-    private val callbackHandlerJob: Job
     private val updateWindowViewHeightJob: Job
 
     private val themedContext = context.withTheme(android.R.style.Theme_DeviceDefault_Settings)
@@ -106,7 +102,6 @@ class InputView(
     private val enterKeyLabel = inputComponent.enterKeyLabel
     private val windowManager = inputComponent.windowManager
     private val quickBar: QuickBar = inputComponent.quickBar
-    private val composition: CompositionPopupWindow = inputComponent.composition
     private val keyboardWindow: KeyboardWindow = inputComponent.keyboardWindow
     private val liquidKeyboard: LiquidKeyboard = inputComponent.liquidKeyboard
     private val compactCandidate: CompactCandidateModule = inputComponent.compactCandidate
@@ -116,7 +111,6 @@ class InputView(
         broadcaster.addReceiver(quickBar)
         broadcaster.addReceiver(keyboardWindow)
         broadcaster.addReceiver(liquidKeyboard)
-        broadcaster.addReceiver(composition)
         broadcaster.addReceiver(compactCandidate)
     }
 
@@ -143,13 +137,6 @@ class InputView(
 
     init {
         addBroadcastReceivers()
-
-        callbackHandlerJob =
-            service.lifecycleScope.launch {
-                rime.run { callbackFlow }.collect {
-                    handleRimeCallback(it)
-                }
-            }
 
         windowManager.cacheResidentWindow(keyboardWindow, createView = true)
         windowManager.cacheResidentWindow(liquidKeyboard)
@@ -335,46 +322,45 @@ class InputView(
         }
     }
 
-    private fun handleRimeCallback(it: RimeCallback) {
-        when (it) {
-            is RimeNotification.SchemaNotification -> {
-                broadcaster.onRimeSchemaUpdated(it.value)
+    private val baseCallbackHandler =
+        object : BaseCallbackHandler(service, rime) {
+            override fun handleRimeCallback(it: RimeCallback) {
+                when (it) {
+                    is RimeNotification.SchemaNotification -> {
+                        broadcaster.onRimeSchemaUpdated(it.value)
 
-                windowManager.attachWindow(KeyboardWindow)
-            }
-            is RimeNotification.OptionNotification -> {
-                broadcaster.onRimeOptionUpdated(it.value)
-
-                if (it.value.option == "_liquid_keyboard") {
-                    ContextCompat.getMainExecutor(service).execute {
-                        windowManager.attachWindow(LiquidKeyboard)
-                        liquidKeyboard.select(0)
+                        windowManager.attachWindow(KeyboardWindow)
                     }
+
+                    is RimeNotification.OptionNotification -> {
+                        broadcaster.onRimeOptionUpdated(it.value)
+
+                        if (it.value.option == "_liquid_keyboard") {
+                            ContextCompat.getMainExecutor(service).execute {
+                                windowManager.attachWindow(LiquidKeyboard)
+                                liquidKeyboard.select(0)
+                            }
+                        }
+                    }
+
+                    is RimeEvent.IpcResponseEvent ->
+                        it.data.let event@{
+                            val ctx = it.context
+                            if (ctx != null) {
+                                broadcaster.onInputContextUpdate(ctx)
+                            }
+                        }
+
+                    else -> {}
                 }
             }
-            is RimeEvent.IpcResponseEvent ->
-                it.data.let event@{
-                    val ctx = it.context
-                    if (ctx != null) {
-                        broadcaster.onInputContextUpdate(ctx)
-                    }
-                }
-            else -> {}
         }
-    }
 
-    fun updateCursorAnchorInfo(info: CursorAnchorInfo) {
-        composition.updateCursorAnchorInfo(info)
-    }
-
-    fun updateComposing(ic: InputConnection?) {
-        composition.isCursorUpdated =
-            if (ic != null && !composition.isWinFixed()) {
-                ic.requestCursorUpdates(InputConnection.CURSOR_UPDATE_IMMEDIATE)
-            } else {
-                false
-            }
-    }
+    var handleCallback: Boolean
+        get() = baseCallbackHandler.handleCallback
+        set(value) {
+            baseCallbackHandler.handleCallback = value
+        }
 
     fun updateSelection(
         start: Int,
@@ -413,10 +399,9 @@ class InputView(
     override fun onDetachedFromWindow() {
         ViewCompat.setOnApplyWindowInsetsListener(this, null)
         showingDialog?.dismiss()
-        composition.hideCompositionView()
         // cancel the notification job and clear all broadcast receivers,
         // implies that InputView should not be attached again after detached.
-        callbackHandlerJob.cancel()
+        baseCallbackHandler.cancelJob()
         updateWindowViewHeightJob.cancel()
         preview.root.removeAllViews()
         broadcaster.clear()

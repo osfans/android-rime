@@ -6,7 +6,6 @@
 package com.osfans.trime.ime.candidates.popup
 
 import android.content.Context
-import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
@@ -98,8 +97,6 @@ class PagedCandidatesUi(
 
     override val root =
         recyclerView {
-            visibility = View.GONE
-
             itemAnimator = null
             isFocusable = false
             adapter = candidatesAdapter

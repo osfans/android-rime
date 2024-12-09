@@ -194,9 +194,6 @@ class KeyboardWindow(
             }
             detachCurrentView()
             attachKeyboard(target)
-            if (windowManager.isAttached(this)) {
-                service.updateComposing()
-            }
         }
         Timber.d("Switched to keyboard: $target")
     }

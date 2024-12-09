@@ -117,7 +117,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="about__app_info">应用信息</string>
     <string name="about__licensing">许可</string>
     <string name="about__support">支持</string>
-    <string name="pref__system_default">系统默认</string>
+    <string name="system_default">系统默认</string>
     <string name="keyboard__key_swipe_travel_title">触发按键滑动手势的距离</string>
     <string name="keyboard__hook_candidate">点击候选词</string>
     <string name="keyboard__hook_candidate_commit">点击候选词后，模拟空格键完成上屏(暂未实现)</string>
@@ -265,4 +265,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="commit_text_preview">首选词预览</string>
     <string name="raw_input">原始输入码</string>
     <string name="composing_text_mode">在程序中显示撰写文本</string>
+    <string name="depends_on_input_device">根据输入设备而定</string>
+    <string name="force_show">强制显示</string>
+    <string name="follow_cursor">跟随光标</string>
+    <string name="bottom_left">左下</string>
+    <string name="bottom_right">右下</string>
+    <string name="top_left">左上</string>
+    <string name="top_right">右上</string>
+    <string name="display_position">显示位置</string>
 </resources>

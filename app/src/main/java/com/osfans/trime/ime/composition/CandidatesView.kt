@@ -7,16 +7,15 @@ package com.osfans.trime.ime.composition
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.view.View
 import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.osfans.trime.R
 import com.osfans.trime.core.RimeProto
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.daemon.launchOnReady
-import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.candidates.popup.PagedCandidatesUi
-import com.osfans.trime.ime.candidates.popup.PopupCandidatesMode
+import com.osfans.trime.ime.core.TrimeInputMethodService
 import splitties.dimensions.dp
 import splitties.views.dsl.constraintlayout.below
 import splitties.views.dsl.constraintlayout.bottomOfParent
@@ -24,17 +23,18 @@ import splitties.views.dsl.constraintlayout.lParams
 import splitties.views.dsl.constraintlayout.startOfParent
 import splitties.views.dsl.constraintlayout.topOfParent
 import splitties.views.dsl.core.add
+import splitties.views.dsl.core.withTheme
 import splitties.views.dsl.core.wrapContent
 import splitties.views.horizontalPadding
 import splitties.views.verticalPadding
 
 @SuppressLint("ViewConstructor")
 class CandidatesView(
-    val ctx: Context,
+    val service: TrimeInputMethodService,
     val rime: RimeSession,
     val theme: Theme,
-) : ConstraintLayout(ctx) {
-    private val candidatesMode by AppPrefs.defaultInstance().candidates.mode
+) : ConstraintLayout(service) {
+    private val ctx = context.withTheme(android.R.style.Theme_DeviceDefault_Settings)
 
     private var menu = RimeProto.Context.Menu()
     private var inputComposition = RimeProto.Context.Composition()
@@ -69,25 +69,7 @@ class CandidatesView(
             // if CandidatesView can be shown, rime engine is ready most of the time,
             // so it should be safety to get option immediately
             val isHorizontalLayout = rime.run { getRuntimeOption("_horizontal") }
-            when (candidatesMode) {
-                PopupCandidatesMode.CURRENT_PAGE -> {
-                    candidatesUi.root.let {
-                        if (it.visibility == View.GONE) {
-                            it.visibility = View.VISIBLE
-                        }
-                    }
-                    candidatesUi.update(menu, isHorizontalLayout)
-                }
-
-                PopupCandidatesMode.PREEDIT_ONLY -> {
-                    candidatesUi.root.let {
-                        if (it.visibility != View.GONE) {
-                            it.visibility = View.GONE
-                            candidatesUi.update(RimeProto.Context.Menu(), isHorizontalLayout)
-                        }
-                    }
-                }
-            }
+            candidatesUi.update(menu, isHorizontalLayout)
         }
     }
 
