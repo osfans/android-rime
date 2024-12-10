@@ -236,15 +236,15 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                 it.data.let event@{
                     val keyCode = it.value.keyCode
                     if (keyCode != KeyEvent.KEYCODE_UNKNOWN) {
-                        // TODO: look for better workaround for this
-                        if (keyCode == KeyEvent.KEYCODE_ENTER) {
-                            handleReturnKey()
-                            return
-                        }
                         val eventTime = SystemClock.uptimeMillis()
                         if (it.modifiers.release) {
                             sendUpKeyEvent(eventTime, keyCode, it.modifiers.metaState)
                         } else {
+                            // TODO: look for better workaround for this
+                            if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                                handleReturnKey()
+                                return
+                            }
                             sendDownKeyEvent(eventTime, keyCode, it.modifiers.metaState)
                         }
                     } else {
