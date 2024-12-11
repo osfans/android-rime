@@ -12,10 +12,7 @@ import android.graphics.Rect
 import android.graphics.drawable.NinePatchDrawable
 import android.util.DisplayMetrics
 import timber.log.Timber
-import java.io.BufferedInputStream
 import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -44,9 +41,9 @@ object NinePatchBitmapFactory {
 
     private fun createNinePatchWithCapInsets(
         res: Resources?,
-        bitmap: Bitmap?,
-        rangeListX: List<Range>?,
-        rangeListY: List<Range>?,
+        bitmap: Bitmap,
+        rangeListX: List<Range>,
+        rangeListY: List<Range>,
         srcName: String?,
     ): NinePatchDrawable {
         val buffer =
@@ -55,12 +52,12 @@ object NinePatchBitmapFactory {
     }
 
     private fun getByteBuffer(
-        rangeListX: List<Range>?,
-        rangeListY: List<Range>?,
+        rangeListX: List<Range>,
+        rangeListY: List<Range>,
     ): ByteBuffer {
         val buffer =
             ByteBuffer
-                .allocate(4 + 4 * 7 + 4 * 2 * rangeListX!!.size + 4 * 2 * rangeListY!!.size + 4 * 9)
+                .allocate(4 + 4 * 7 + 4 * 2 * rangeListX.size + 4 * 2 * rangeListY.size + 4 * 9)
                 .order(
                     ByteOrder.nativeOrder(),
                 )
@@ -104,7 +101,7 @@ object NinePatchBitmapFactory {
     private fun checkBitmap(bitmap: Bitmap): RangeLists {
         val width = bitmap.width
         val height = bitmap.height
-        val rangeListX: MutableList<Range> = ArrayList()
+        val rangeListX = arrayListOf<Range>()
         var pos = -1
         for (i in 1 until width - 1) {
             val color = bitmap.getPixel(i, 0)
@@ -119,19 +116,13 @@ object NinePatchBitmapFactory {
                 }
             } else {
                 if (pos != -1) {
-                    val range = Range()
-                    range.start = pos
-                    range.end = i - 1
-                    rangeListX.add(range)
+                    rangeListX.add(Range(pos, i - 1))
                     pos = -1
                 }
             }
         }
         if (pos != -1) {
-            val range = Range()
-            range.start = pos
-            range.end = width - 2
-            rangeListX.add(range)
+            rangeListX.add(Range(pos, width - 2))
         }
         for (range in rangeListX) {
             Timber.v("(" + range.start + "," + range.end + ")")
@@ -150,27 +141,18 @@ object NinePatchBitmapFactory {
                 }
             } else {
                 if (pos != -1) {
-                    val range = Range()
-                    range.start = pos
-                    range.end = i - 1
-                    rangeListY.add(range)
+                    rangeListY.add(Range(pos, i - 1))
                     pos = -1
                 }
             }
         }
         if (pos != -1) {
-            val range = Range()
-            range.start = pos
-            range.end = height - 2
-            rangeListY.add(range)
+            rangeListY.add(Range(pos, height - 2))
         }
         for (range in rangeListY) {
             Timber.v("(" + range.start + "," + range.end + ")")
         }
-        val rangeLists = RangeLists()
-        rangeLists.rangeListX = rangeListX
-        rangeLists.rangeListY = rangeListY
-        return rangeLists
+        return RangeLists(rangeListX, rangeListY)
     }
 
     private fun trimBitmap(bitmap: Bitmap): Bitmap {
@@ -179,42 +161,31 @@ object NinePatchBitmapFactory {
         return Bitmap.createBitmap(bitmap, 1, 1, width - 2, height - 2)
     }
 
-    fun loadBitmap(file: File?): Bitmap? {
-        var bis: BufferedInputStream? = null
-        try {
-            bis = BufferedInputStream(FileInputStream(file))
-            return BitmapFactory.decodeStream(bis)
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } finally {
-            try {
-                bis!!.close()
-            } catch (e: Exception) {
+    fun loadBitmap(file: File): Bitmap? =
+        runCatching {
+            file.inputStream().buffered().use {
+                BitmapFactory.decodeStream(it)
             }
-        }
-        return null
-    }
+        }.getOrNull()
 
-    fun getDensityPostfix(res: Resources): String? {
-        var result: String? = null
+    fun getDensityPostfix(res: Resources): String? =
         when (res.displayMetrics.densityDpi) {
-            DisplayMetrics.DENSITY_LOW -> result = "ldpi"
-            DisplayMetrics.DENSITY_MEDIUM -> result = "mdpi"
-            DisplayMetrics.DENSITY_HIGH -> result = "hdpi"
-            DisplayMetrics.DENSITY_XHIGH -> result = "xhdpi"
-            DisplayMetrics.DENSITY_XXHIGH -> result = "xxhdpi"
-            DisplayMetrics.DENSITY_XXXHIGH -> result = "xxxhdpi"
+            DisplayMetrics.DENSITY_LOW -> "ldpi"
+            DisplayMetrics.DENSITY_MEDIUM -> "mdpi"
+            DisplayMetrics.DENSITY_HIGH -> "hdpi"
+            DisplayMetrics.DENSITY_XHIGH -> "xhdpi"
+            DisplayMetrics.DENSITY_XXHIGH -> "xxhdpi"
+            DisplayMetrics.DENSITY_XXXHIGH -> "xxxhdpi"
+            else -> null
         }
-        return result
-    }
 
-    class RangeLists {
-        var rangeListX: List<Range>? = null
-        var rangeListY: List<Range>? = null
-    }
+    class RangeLists(
+        val rangeListX: List<Range>,
+        val rangeListY: List<Range>,
+    )
 
-    class Range {
-        var start = 0
-        var end = 0
-    }
+    data class Range(
+        val start: Int,
+        val end: Int,
+    )
 }
