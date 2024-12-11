@@ -53,7 +53,6 @@ import com.osfans.trime.ime.broadcast.IntentReceiver
 import com.osfans.trime.ime.composition.ComposingPopupWindow
 import com.osfans.trime.ime.keyboard.InitializationUi
 import com.osfans.trime.ime.keyboard.InputFeedbackManager
-import com.osfans.trime.util.ShortcutUtils
 import com.osfans.trime.util.findSectionFrom
 import com.osfans.trime.util.forceShowSelf
 import com.osfans.trime.util.isNightMode
@@ -67,6 +66,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 import splitties.bitflags.hasFlag
+import splitties.systemservices.clipboardManager
 import splitties.systemservices.inputMethodManager
 import timber.log.Timber
 import java.util.Locale
@@ -260,10 +260,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                 }
             else -> {}
         }
-    }
-
-    fun pasteByChar() {
-        commitTextByChar(checkNotNull(ShortcutUtils.pasteFromClipboard(this)).toString())
     }
 
     private fun setupInputViews(theme: Theme): InputView {
@@ -879,7 +875,8 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                     val et = ic.getExtractedText(etr, 0)
                     if (et == null) {
                         Timber.d("hookKeyboard paste, et == null, try commitText")
-                        if (ic.commitText(ShortcutUtils.pasteFromClipboard(this), 1)) {
+                        val clipboardText = clipboardManager.primaryClip?.getItemAt(0)?.coerceToText(this)
+                        if (ic.commitText(clipboardText, 1)) {
                             return true
                         }
                     } else if (ic.performContextMenuAction(android.R.id.paste)) {

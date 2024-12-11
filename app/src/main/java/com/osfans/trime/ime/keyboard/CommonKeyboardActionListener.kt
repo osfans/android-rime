@@ -7,6 +7,7 @@ package com.osfans.trime.ime.keyboard
 
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.view.KeyEvent
 import androidx.lifecycle.lifecycleScope
 import com.osfans.trime.R
@@ -20,7 +21,6 @@ import com.osfans.trime.daemon.launchOnReady
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.KeyActionManager
-import com.osfans.trime.ime.core.InputView
 import com.osfans.trime.ime.core.Speech
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.dependency.InputScope
@@ -34,11 +34,14 @@ import com.osfans.trime.ime.window.BoardWindowManager
 import com.osfans.trime.ui.main.settings.ColorPickerDialog
 import com.osfans.trime.ui.main.settings.KeySoundEffectPickerDialog
 import com.osfans.trime.ui.main.settings.ThemePickerDialog
-import com.osfans.trime.util.ShortcutUtils
-import com.osfans.trime.util.ShortcutUtils.openCategory
+import com.osfans.trime.util.AppUtils
+import com.osfans.trime.util.buildIntentFromAction
+import com.osfans.trime.util.buildIntentFromArgument
+import com.osfans.trime.util.customFormatDateTime
 import com.osfans.trime.util.isAsciiPrintable
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
+import splitties.systemservices.clipboardManager
 import splitties.systemservices.inputMethodManager
 import timber.log.Timber
 
@@ -102,7 +105,7 @@ class CommonKeyboardActionListener(
                     showAvailableSchemaPicker()
                 }
                 setNegativeButton(R.string.set_ime) { _, _ ->
-                    ShortcutUtils.launchMainActivity(context)
+                    AppUtils.launchMainActivity(context)
                 }
             }
         }
@@ -195,12 +198,28 @@ class CommonKeyboardActionListener(
                                     windowManager.attachWindow(KeyboardWindow)
                                 }
                             }
-                            "paste_by_char" -> service.pasteByChar()
                             "set_color_scheme" -> ColorManager.setColorScheme(arg)
-                            else -> {
-                                ShortcutUtils.call(service, action.command, arg)?.let {
+                            "broadcast" -> service.sendBroadcast(Intent(arg))
+                            "clipboard" -> {
+                                clipboardManager.primaryClip?.getItemAt(0)?.coerceToText(service)?.let {
                                     service.commitText(it)
                                 }
+                            }
+                            "commit" -> service.commitText(arg)
+                            "date" -> service.commitText(customFormatDateTime(arg))
+                            "run" ->
+                                service.startActivity(
+                                    buildIntentFromArgument(arg)?.apply {
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY
+                                    },
+                                )
+                            "share_text" -> service.shareText()
+                            else -> {
+                                service.startActivity(
+                                    buildIntentFromAction(action.command, arg)?.apply {
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY
+                                    },
+                                )
                             }
                         }
                     }
@@ -211,7 +230,7 @@ class CommonKeyboardActionListener(
                             "color" -> showColorPicker()
                             "schema" -> showAvailableSchemaPicker()
                             "sound" -> showSoundEffectPicker()
-                            else -> ShortcutUtils.launchMainActivity(service)
+                            else -> AppUtils.launchMainActivity(service)
                         }
                     }
                     KeyEvent.KEYCODE_PROG_RED -> showColorPicker()
@@ -268,7 +287,7 @@ class CommonKeyboardActionListener(
                         Timber.d("handleKey: hook")
                         return@postRimeJob
                     }
-                    if (context.openCategory(keyEventCode)) {
+                    if (AppUtils.launchKeyCategory(service, keyEventCode)) {
                         Timber.d("handleKey: openCategory")
                         return@postRimeJob
                     }
