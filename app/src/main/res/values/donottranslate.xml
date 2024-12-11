@@ -7,12 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 -->
 
 <resources xmlns:xliff="urn:oasis:names:en:xliff:document:1.2">
-    <string-array name="keyboard__inline_values">
-        <item>preview</item>
-        <item>composition</item>
-        <item>input</item>
-        <item>none</item>
-    </string-array>
     <string-array name="keyboard__landscape_mode_values">
         <item>NEVER</item>
         <item>LANDSCAPE</item>
@@ -24,23 +18,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
         <item>LIGHT</item>
         <item>DARK</item>
     </string-array>
-    <string-array name="other__clipboard_manager_values">
-        <item>0</item>
-        <item>20</item>
-        <item>50</item>
-        <item>100</item>
-        <item>200</item>
-        <item>500</item>
-        <item>1000</item>
-        <item>-1</item>
-    </string-array>
     <string-array name="keyboard__fullscreen_mode_values">
         <item>auto_show</item>
         <item>always_show</item>
         <item>never_show</item>
     </string-array>
-    <string name="default_shared_data_dir" translatable="false">/sdcard/rime</string>
-    <string name="conf__default_user_data_dir" translatable="false">/sdcard/rime</string>
     <string-array name="navbar_bkg_values">
         <item>NONE</item>
         <item>COLOR_ONLY</item>
