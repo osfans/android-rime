@@ -14,7 +14,7 @@ import com.osfans.trime.data.db.DatabaseBean
 import com.osfans.trime.data.db.DraftHelper
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.core.TrimeInputMethodService
-import com.osfans.trime.util.ShortcutUtils
+import com.osfans.trime.util.AppUtils
 import kotlinx.coroutines.launch
 
 class DbAdapter(
@@ -65,7 +65,7 @@ class DbAdapter(
     }
 
     override fun onEdit(bean: DatabaseBean) {
-        bean.text?.let { ShortcutUtils.launchLiquidKeyboardEdit(ctx, type, bean.id, it) }
+        bean.text?.let { AppUtils.launchLiquidKeyboardEdit(ctx, type, bean.id, it) }
     }
 
     override fun onCollect(bean: DatabaseBean) {

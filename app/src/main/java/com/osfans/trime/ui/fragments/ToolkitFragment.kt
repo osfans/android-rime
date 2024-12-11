@@ -11,8 +11,8 @@ import androidx.preference.Preference
 import com.osfans.trime.R
 import com.osfans.trime.ui.components.PaddingPreferenceFragment
 import com.osfans.trime.ui.main.MainViewModel
+import com.osfans.trime.util.AppUtils
 import com.osfans.trime.util.Logcat
-import com.osfans.trime.util.ShortcutUtils
 
 class ToolkitFragment : PaddingPreferenceFragment() {
     private val viewModel: MainViewModel by activityViewModels()
@@ -28,7 +28,7 @@ class ToolkitFragment : PaddingPreferenceFragment() {
                 setTitle(R.string.real_time_logs)
                 isIconSpaceReserved = false
                 setOnPreferenceClickListener {
-                    ShortcutUtils.launchLogActivity(context)
+                    AppUtils.launchLogActivity(context)
                     true
                 }
             },

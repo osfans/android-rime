@@ -25,10 +25,6 @@ import com.osfans.trime.TrimeApplication
 import splitties.experimental.InternalSplittiesApi
 import splitties.resources.withResolvedThemeAttribute
 import java.io.Serializable
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 
 val appContext: Context get() = TrimeApplication.getInstance().applicationContext
 
@@ -51,16 +47,6 @@ inline fun View.styledFloat(
 inline fun Fragment.styledFloat(
     @AttrRes attrRes: Int,
 ) = context!!.styledFloat(attrRes)
-
-fun formatDateTime(timeMillis: Long? = null): String = SimpleDateFormat.getDateTimeInstance().format(timeMillis?.let { Date(it) } ?: Date())
-
-private val iso8601DateFormat by lazy {
-    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
-        timeZone = TimeZone.getTimeZone("UTC")
-    }
-}
-
-fun iso8601UTCDateTime(timeMillis: Long? = null): String = iso8601DateFormat.format(timeMillis?.let { Date(it) } ?: Date())
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun CharSequence.startsWithAsciiChar(): Boolean {
