@@ -7,6 +7,7 @@ package com.osfans.trime.ime.core
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.AlarmManager
+import android.app.Dialog
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.res.Configuration
@@ -20,6 +21,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.view.WindowManager
 import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest
@@ -56,6 +58,7 @@ import com.osfans.trime.util.findSectionFrom
 import com.osfans.trime.util.forceShowSelf
 import com.osfans.trime.util.isNightMode
 import com.osfans.trime.util.monitorCursorAnchor
+import com.osfans.trime.util.styledFloat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -535,7 +538,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             clearComposition()
         }
         InputFeedbackManager.finishInput()
-        inputView?.finishInput()
     }
 
     // 直接commit不做任何处理
@@ -933,6 +935,27 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
 
     override fun onEvaluateFullscreenMode(): Boolean = false
+
+    private var showingDialog: Dialog? = null
+
+    fun showDialog(dialog: Dialog) {
+        showingDialog?.dismiss()
+        dialog.window?.also {
+            it.attributes.apply {
+                token = decorView.windowToken
+                type = WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG
+            }
+            it.addFlags(
+                WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM or WindowManager.LayoutParams.FLAG_DIM_BEHIND,
+            )
+            it.setDimAmount(styledFloat(android.R.attr.backgroundDimAmount))
+        }
+        dialog.setOnDismissListener {
+            showingDialog = null
+        }
+        dialog.show()
+        showingDialog = dialog
+    }
 
     companion object {
         /** Delimiter regex to split language/locale tags. */
