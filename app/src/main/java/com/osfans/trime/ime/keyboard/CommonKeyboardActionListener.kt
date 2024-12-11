@@ -48,7 +48,6 @@ class CommonKeyboardActionListener(
     private val context: Context,
     private val service: TrimeInputMethodService,
     private val rime: RimeSession,
-    private val inputView: InputView,
     private val liquidKeyboard: LiquidKeyboard,
     private val windowManager: BoardWindowManager,
 ) {
@@ -67,7 +66,7 @@ class CommonKeyboardActionListener(
     private fun showDialog(dialog: suspend (RimeApi) -> Dialog) {
         rime.launchOnReady { api ->
             service.lifecycleScope.launch {
-                inputView.showDialog(dialog(api))
+                service.showDialog(dialog(api))
             }
         }
     }

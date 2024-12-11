@@ -91,7 +91,7 @@ class DbAdapter(
                     }
                 }.setNegativeButton(R.string.cancel, null)
                 .create()
-        service.inputView?.showDialog(confirm)
+        service.showDialog(confirm)
     }
 
     override val showCollectButton: Boolean = type != SymbolBoardType.COLLECTION

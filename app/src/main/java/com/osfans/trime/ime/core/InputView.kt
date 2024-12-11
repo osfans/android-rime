@@ -5,12 +5,10 @@
 package com.osfans.trime.ime.core
 
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.graphics.Color
 import android.os.Build
 import android.view.View
 import android.view.View.OnClickListener
-import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -37,7 +35,6 @@ import com.osfans.trime.ime.keyboard.KeyboardWindow
 import com.osfans.trime.ime.preview.KeyPreviewChoreographer
 import com.osfans.trime.ime.symbol.LiquidKeyboard
 import com.osfans.trime.util.ColorUtils
-import com.osfans.trime.util.styledFloat
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import splitties.dimensions.dp
@@ -372,36 +369,8 @@ class InputView(
         broadcaster.onSelectionUpdate(start, end)
     }
 
-    private var showingDialog: Dialog? = null
-
-    fun showDialog(dialog: Dialog) {
-        showingDialog?.dismiss()
-        val windowToken = windowToken
-        check(windowToken != null) { "InputView Token is null." }
-        val window = dialog.window!!
-        window.attributes.apply {
-            token = windowToken
-            type = WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG
-        }
-        window.addFlags(
-            WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM or
-                WindowManager.LayoutParams.FLAG_DIM_BEHIND,
-        )
-        window.setDimAmount(themedContext.styledFloat(android.R.attr.backgroundDimAmount))
-        showingDialog =
-            dialog.apply {
-                setOnDismissListener { this@InputView.showingDialog = null }
-                show()
-            }
-    }
-
-    fun finishInput() {
-        showingDialog?.dismiss()
-    }
-
     override fun onDetachedFromWindow() {
         ViewCompat.setOnApplyWindowInsetsListener(this, null)
-        showingDialog?.dismiss()
         // cancel the notification job and clear all broadcast receivers,
         // implies that InputView should not be attached again after detached.
         baseCallbackHandler.cancelJob()
