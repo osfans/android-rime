@@ -75,14 +75,18 @@ class CommonKeyboardActionListener(
     }
 
     private fun showThemePicker() {
-        showDialog {
-            ThemePickerDialog.build(service.lifecycleScope, context)
+        showDialog { api ->
+            ThemePickerDialog.build(service.lifecycleScope, context) {
+                api.commitComposition()
+            }
         }
     }
 
     private fun showColorPicker() {
-        showDialog {
-            ColorPickerDialog.build(service.lifecycleScope, context)
+        showDialog { api ->
+            ColorPickerDialog.build(service.lifecycleScope, context) {
+                api.commitComposition()
+            }
         }
     }
 

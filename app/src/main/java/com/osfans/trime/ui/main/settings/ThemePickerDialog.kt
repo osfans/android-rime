@@ -18,6 +18,7 @@ object ThemePickerDialog {
     suspend fun build(
         scope: LifecycleCoroutineScope,
         context: Context,
+        afterConfirm: (suspend () -> Unit)? = null,
     ): AlertDialog {
         val all =
             withContext(Dispatchers.IO) {
@@ -46,6 +47,7 @@ object ThemePickerDialog {
                         currentIndex,
                     ) { dialog, which ->
                         scope.launch {
+                            afterConfirm?.invoke()
                             ThemeManager.setNormalTheme(all[which])
                             dialog.dismiss()
                         }

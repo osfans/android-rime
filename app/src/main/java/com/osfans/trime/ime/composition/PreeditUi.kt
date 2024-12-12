@@ -11,6 +11,7 @@ import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.view.MotionEvent
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.text.buildSpannedString
 import com.osfans.trime.core.RimeProto
 import com.osfans.trime.data.theme.ColorManager
@@ -25,6 +26,7 @@ import splitties.views.setPaddingDp
 open class PreeditUi(
     final override val ctx: Context,
     private val theme: Theme,
+    private val setupPreeditView: (TextView.() -> Unit)? = null,
 ) : Ui {
     private val textColor = ColorManager.getColor("text_color")
     private val highlightTextColor = ColorManager.getColor("hilited_text_color")
@@ -34,8 +36,9 @@ open class PreeditUi(
         view(::PreeditTextView) {
             setPaddingDp(3, 1, 3, 1)
             textColor?.let { setTextColor(it) }
-            textSize = theme.generalStyle.textSize.toFloat()
+            textSize = theme.generalStyle.textSize
             typeface = FontManager.getTypeface("text_font")
+            setupPreeditView?.invoke(this)
         }
 
     override val root =

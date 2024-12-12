@@ -55,7 +55,8 @@ class ComposingPopupWindow(
                     theme.generalStyle.layout.border,
                     "border_color",
                     theme.generalStyle.layout.roundCorner,
-                    theme.generalStyle.layout.alpha,
+                    theme.generalStyle.layout.alpha
+                        .toInt(),
                 ),
             )
             width = WindowManager.LayoutParams.WRAP_CONTENT

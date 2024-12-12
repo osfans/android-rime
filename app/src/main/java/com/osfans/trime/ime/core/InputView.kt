@@ -375,6 +375,7 @@ class InputView(
         // implies that InputView should not be attached again after detached.
         baseCallbackHandler.cancelJob()
         updateWindowViewHeightJob.cancel()
+        preedit.onDetached()
         preview.root.removeAllViews()
         broadcaster.clear()
         super.onDetachedFromWindow()

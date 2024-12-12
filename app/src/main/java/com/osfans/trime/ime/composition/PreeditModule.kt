@@ -6,17 +6,23 @@
 package com.osfans.trime.ime.composition
 
 import android.content.Context
+import android.graphics.Outline
+import android.graphics.Rect
 import android.view.Gravity
+import android.view.View
+import android.view.ViewOutlineProvider
 import android.view.WindowManager
 import android.widget.PopupWindow
 import com.osfans.trime.core.RimeProto
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.daemon.launchOnReady
+import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.bar.QuickBar
 import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
 import com.osfans.trime.ime.dependency.InputScope
 import me.tatarka.inject.annotations.Inject
+import splitties.views.backgroundColor
 
 @InputScope
 @Inject
@@ -26,8 +32,29 @@ class PreeditModule(
     rime: RimeSession,
     private val bar: QuickBar,
 ) : InputBroadcastReceiver {
+    private val textBackColor = ColorManager.getColor("text_back_color")
+
+    private val topLeftCornerRadiusOutlineProvider =
+        object : ViewOutlineProvider() {
+            override fun getOutline(
+                view: View,
+                outline: Outline,
+            ) {
+                val radius = theme.generalStyle.layout.roundCorner
+                val width = view.width
+                val height = view.height
+                val rect = Rect(-radius.toInt(), 0, width, (height + radius).toInt())
+                outline.setRoundRect(rect, radius)
+            }
+        }
+
     val ui =
-        PreeditUi(context, theme).apply {
+        PreeditUi(context, theme, setupPreeditView = {
+            textBackColor?.let { backgroundColor = it }
+        }).apply {
+            root.alpha = theme.generalStyle.layout.alpha
+            root.outlineProvider = topLeftCornerRadiusOutlineProvider
+            root.clipToOutline = true
             preedit.setOnCursorMoveListener { position ->
                 rime.launchOnReady { it.moveCursorPos(position) }
             }
@@ -42,13 +69,17 @@ class PreeditModule(
     override fun onInputContextUpdate(ctx: RimeProto.Context) {
         ui.update(ctx.composition)
         if (ctx.composition.length > 0) {
+            window.showAtLocation(bar.view, Gravity.START or Gravity.TOP, 0, 0)
             val (x, y) = intArrayOf(0, 0).also { bar.view.getLocationInWindow(it) }
-            window.showAtLocation(bar.view, Gravity.START or Gravity.TOP, x, y)
             ui.root.post {
                 window.update(x, y - ui.root.height, -1, -1)
             }
         } else {
             window.dismiss()
         }
+    }
+
+    fun onDetached() {
+        window.dismiss()
     }
 }
