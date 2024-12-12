@@ -17,6 +17,7 @@ object ColorPickerDialog {
     suspend fun build(
         scope: LifecycleCoroutineScope,
         context: Context,
+        afterConfirm: (suspend () -> Unit)? = null,
     ): AlertDialog {
         val all = withContext(Dispatchers.Default) { ColorManager.presetColorSchemes }
         val allIds = all.keys
@@ -35,6 +36,7 @@ object ColorPickerDialog {
                         currentIndex,
                     ) { dialog, which ->
                         scope.launch {
+                            afterConfirm?.invoke()
                             if (which != currentIndex) {
                                 ColorManager.setColorScheme(allIds.elementAt(which))
                             }

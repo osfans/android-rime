@@ -69,7 +69,7 @@ data class GeneralStyle(
     val symbolFont: List<String>,
     val symbolTextSize: Float,
     val textFont: List<String>,
-    val textSize: Int,
+    val textSize: Float,
     val verticalCorrection: Int,
     val verticalGap: Int,
     val longTextFont: List<String>,

@@ -26,7 +26,7 @@ data class Layout(
     val realMargin: Int,
     val spacing: Int,
     val roundCorner: Float,
-    val alpha: Int,
+    val alpha: Float,
     val elevation: Int,
     val movable: String,
 )

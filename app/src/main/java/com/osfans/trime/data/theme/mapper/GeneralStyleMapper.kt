@@ -141,7 +141,7 @@ class GeneralStyleMapper(
 
         val textFont = getStringList("text_font")
 
-        val textSize = getInt("text_size")
+        val textSize = getFloat("text_size")
 
         val verticalCorrection = getInt("vertical_correction")
 
