@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import Versions.cmakeVersion
-import Versions.ndkVersion
 import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -31,16 +29,12 @@ open class NativeBaseConventionPlugin : Plugin<Project> {
                 }
             }
 
-            splits {
-                abi {
-                    isEnable = true
-                    reset()
-                    if (ApkRelease.run { target.buildApkRelease }) {
-                        include("x86", "x86_64", "armeabi-v7a", "arm64-v8a")
-                    } else {
-                        include(*target.buildABI.split(',').toTypedArray())
-                    }
-                    isUniversalApk = false
+            splits.abi {
+                isEnable = true
+                isUniversalApk = false
+                reset()
+                (target.buildAbiOverride?.split(",") ?: Versions.supportedAbis).forEach {
+                    include(it)
                 }
             }
         }

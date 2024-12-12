@@ -41,16 +41,12 @@ android {
             isMinifyEnabled = false
             // proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-android.txt"
             signingConfig =
-                with(ApkRelease) {
-                    if (project.buildApkRelease) {
-                        signingConfigs.create("release") {
-                            storeFile = file(project.storeFile!!)
-                            storePassword = project.storePassword
-                            keyAlias = project.keyAlias
-                            keyPassword = project.keyPassword
-                        }
-                    } else {
-                        null
+                project.signKeyFile?.let {
+                    signingConfigs.create("release") {
+                        storeFile = it
+                        storePassword = project.signKeyStorePwd
+                        keyAlias = project.signKeyAlias
+                        keyPassword = project.signKeyPwd
                     }
                 }
 
