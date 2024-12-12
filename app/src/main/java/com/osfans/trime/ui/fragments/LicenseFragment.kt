@@ -54,7 +54,6 @@ class LicenseFragment : PaddingPreferenceFragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.setToolbarTitle(getString(R.string.about__license))
         viewModel.disableTopOptionsMenu()
     }
 

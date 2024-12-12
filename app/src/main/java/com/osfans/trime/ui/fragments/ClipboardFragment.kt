@@ -22,7 +22,6 @@ class ClipboardFragment : PaddingPreferenceFragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.setToolbarTitle(getString(R.string.clipboard))
         viewModel.disableTopOptionsMenu()
     }
 }

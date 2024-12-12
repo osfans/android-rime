@@ -107,6 +107,12 @@ class PrefMainActivity : AppCompatActivity() {
         }
         navHostFragment.navController.addOnDestinationChangedListener { _, dest, _ ->
             dest.label?.let { viewModel.setToolbarTitle(it.toString()) }
+            binding.prefToolbar.toolbar.subtitle =
+                if (dest.id == R.id.prefFragment) {
+                    getString(R.string.trime_app_slogan)
+                } else {
+                    ""
+                }
         }
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

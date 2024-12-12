@@ -14,7 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <fragment
         android:id="@+id/prefFragment"
         android:name="com.osfans.trime.ui.fragments.PrefFragment"
-        android:label="PrefFragment" >
+        android:label="@string/trime_app_name" >
         <action
             android:id="@+id/action_prefFragment_to_profileFragment"
             app:destination="@id/profileFragment"
@@ -30,8 +30,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim" />
         <action
-            android:id="@+id/action_prefFragment_to_themeColorFragment"
-            app:destination="@id/themeColorFragment"
+            android:id="@+id/action_prefFragment_to_themeFragment"
+            app:destination="@id/themeFragment"
             app:enterAnim="@anim/nav_default_enter_anim"
             app:exitAnim="@anim/nav_default_exit_anim"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
@@ -70,27 +70,27 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.osfans.trime.ui.fragments.ProfileFragment"
-        android:label="ProfileFragment" />
+        android:label="@string/profile" />
     <fragment
         android:id="@+id/keyboardFragment"
         android:name="com.osfans.trime.ui.fragments.KeyboardFragment"
-        android:label="KeyboardFragment" />
+        android:label="@string/keyboard" />
     <fragment
-        android:id="@+id/themeColorFragment"
-        android:name="com.osfans.trime.ui.fragments.ThemeColorFragment"
-        android:label="ThemeColorFragment" />
+        android:id="@+id/themeFragment"
+        android:name="com.osfans.trime.ui.fragments.ThemeFragment"
+        android:label="@string/theme" />
     <fragment
         android:id="@+id/otherFragment"
         android:name="com.osfans.trime.ui.fragments.OtherFragment"
-        android:label="OtherFragment" />
+        android:label="@string/others" />
     <fragment
         android:id="@+id/toolkitFragment"
         android:name="com.osfans.trime.ui.fragments.ToolkitFragment"
-        android:label="ToolkitFragment" />
+        android:label="@string/toolkit" />
     <fragment
         android:id="@+id/aboutFragment"
         android:name="com.osfans.trime.ui.fragments.AboutFragment"
-        android:label="AboutFragment" >
+        android:label="@string/about" >
         <action
             android:id="@+id/action_aboutFragment_to_licenseFragment"
             app:destination="@id/licenseFragment"
@@ -102,11 +102,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <fragment
         android:id="@+id/licenseFragment"
         android:name="com.osfans.trime.ui.fragments.LicenseFragment"
-        android:label="LicenseFragment" />
+        android:label="@string/license" />
     <fragment
         android:id="@+id/clipboardFragment"
         android:name="com.osfans.trime.ui.fragments.ClipboardFragment"
-        android:label="ClipboardFragment" />
+        android:label="@string/clipboard" />
     <fragment
         android:id="@+id/candidatesSettingsFragment"
         android:name="com.osfans.trime.ui.main.settings.CandidatesSettingsFragment"

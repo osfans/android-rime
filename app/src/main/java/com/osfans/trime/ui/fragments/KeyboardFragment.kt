@@ -54,7 +54,6 @@ class KeyboardFragment :
 
     override fun onResume() {
         super.onResume()
-        viewModel.setToolbarTitle(getString(R.string.pref_keyboard))
         viewModel.disableTopOptionsMenu()
         preferenceScreen.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)
     }

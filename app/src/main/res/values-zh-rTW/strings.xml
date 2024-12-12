@@ -24,7 +24,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="about__librime_version">RIME版本</string>
     <string name="about__opencc_version">OpenCC版本</string>
     <string name="about__changelog">更新日誌</string>
-    <string name="about__license">許可證</string>
+    <string name="license">許可證</string>
     <string name="pref_credits">貢獻代碼</string>
     <string name="about__product_prime">Win10 PRIME輸入法平臺</string>
     <string name="about__privacy_policy">隱私權政策</string>
@@ -68,7 +68,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="set_ime">設定</string>
     <string name="other_ime">其他輸入法</string>
     <string name="other__ui_mode_title">夜間模式</string>
-    <string name="pref_other">其他設置</string>
+    <string name="others">其他</string>
     <string name="other__show_status_bar_icon_title">顯示通知欄圖標</string>
     <string name="other__destroy_on_quit_title">離開時清理記憶體</string>
     <string name="profile_user_data_dir">使用者資料夾</string>
@@ -158,13 +158,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="real_time_logs_clear">清除所有紀錄檔</string>
     <string name="real_time_logs_confirm">要清除有紀錄檔嗎？(此動作不能復原)</string>
     <string name="clear">清除畫面</string>
-    <string name="pref_toolkit">工具箱</string>
+    <string name="toolkit">工具箱</string>
     <string name="exception_logcat_created">Logcat 行程已建立</string>
-    <string name="pref_about">關於</string>
-    <string name="pref_theme_and_color">主題與配色</string>
-    <string name="pref_profile">配置管理</string>
-    <string name="pref_profile_summary">設定儲存位置和修改同步設定等</string>
-    <string name="pref_keyboard">鍵盤設定</string>
+    <string name="about">關於</string>
+    <string name="theme">主題</string>
+    <string name="profile">配置</string>
+    <string name="profile_summary">設定儲存位置和修改同步設定等</string>
+    <string name="keyboard">鍵盤</string>
     <string name="storage">儲存</string>
     <string name="maintenance">維護</string>
     <string name="loading">正在載入</string>
@@ -226,7 +226,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="forget_this_word">忘記該詞</string>
     <string name="synchronization">同步</string>
     <string name="profile_timing_background_sync_set_time">設定後台同步時間</string>
-    <string name="candidates_window">候选词窗口</string>
+    <string name="candidates_window">候选窗口</string>
     <string name="candidates_mode">候選詞顯示模式</string>
     <string name="general">常規</string>
     <string name="preedit">預編輯碼</string>

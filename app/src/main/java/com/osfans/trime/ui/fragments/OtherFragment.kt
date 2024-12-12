@@ -40,7 +40,6 @@ class OtherFragment : PaddingPreferenceFragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.setToolbarTitle(getString(R.string.pref_other))
         viewModel.disableTopOptionsMenu()
     }
 
