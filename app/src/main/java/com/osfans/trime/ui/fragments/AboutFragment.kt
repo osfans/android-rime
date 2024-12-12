@@ -71,11 +71,6 @@ class AboutFragment : PaddingPreferenceFragment() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.setToolbarTitle(getString(R.string.pref_about))
-    }
-
     companion object {
         private val DASH_G_PATTERN = Regex("^(.*-g)([0-9a-f]+)(.*)$")
         private val COMMON_PATTERN = Regex("^([^-]*)(-.*)$")

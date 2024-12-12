@@ -16,7 +16,7 @@ import com.osfans.trime.ui.main.settings.ColorPickerDialog
 import com.osfans.trime.ui.main.settings.ThemePickerDialog
 import kotlinx.coroutines.launch
 
-class ThemeColorFragment : PaddingPreferenceFragment() {
+class ThemeFragment : PaddingPreferenceFragment() {
     private val viewModel: MainViewModel by activityViewModels()
 
     override fun onCreatePreferences(
@@ -38,7 +38,6 @@ class ThemeColorFragment : PaddingPreferenceFragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.setToolbarTitle(getString(R.string.pref_theme_and_color))
         viewModel.disableTopOptionsMenu()
     }
 }

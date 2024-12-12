@@ -54,7 +54,6 @@ class ToolkitFragment : PaddingPreferenceFragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.setToolbarTitle(getString(R.string.pref_toolkit))
         viewModel.disableTopOptionsMenu()
     }
 }

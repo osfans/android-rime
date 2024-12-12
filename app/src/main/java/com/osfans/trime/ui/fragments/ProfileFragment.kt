@@ -174,7 +174,6 @@ class ProfileFragment :
 
     override fun onResume() {
         super.onResume()
-        viewModel.setToolbarTitle(getString(R.string.pref_profile))
         viewModel.disableTopOptionsMenu()
         preferenceScreen.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)
     }

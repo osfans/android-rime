@@ -23,7 +23,6 @@ class PrefFragment : PaddingPreferenceFragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.setToolbarTitle(getString(R.string.trime_app_name))
         viewModel.enableTopOptionsMenu()
     }
 
@@ -70,7 +69,7 @@ class PrefFragment : PaddingPreferenceFragment() {
                 true
             }
             get<Preference>("pref_theme_and_color")?.setOnPreferenceClickListener {
-                findNavController().navigate(R.id.action_prefFragment_to_themeColorFragment)
+                findNavController().navigate(R.id.action_prefFragment_to_themeFragment)
                 true
             }
             get<Preference>("pref_clipboard")?.setOnPreferenceClickListener {

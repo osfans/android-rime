@@ -9,7 +9,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:key="pref_keyboard"
-    android:title="@string/pref_keyboard">
+    android:title="@string/keyboard">
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
