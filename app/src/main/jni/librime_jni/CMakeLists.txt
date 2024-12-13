@@ -26,20 +26,6 @@ execute_process(
 )
 string(STRIP ${TRIME_VERSION} TRIME_VERSION)
 
-execute_process(
-  COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/OpenCC/.git describe --tags
-  OUTPUT_VARIABLE OPENCC_VERSION
-)
-string(STRIP ${OPENCC_VERSION} OPENCC_VERSION)
-
-execute_process(
-  COMMAND git --git-dir ${CMAKE_SOURCE_DIR}/librime/.git describe --tags --exclude "latest"
-  OUTPUT_VARIABLE LIBRIME_VERSION
-)
-string(STRIP ${LIBRIME_VERSION} LIBRIME_VERSION)
-
 target_compile_definitions(rime_jni PRIVATE
   TRIME_VERSION="${TRIME_VERSION}"
-  OPENCC_VERSION="${OPENCC_VERSION}"
-  LIBRIME_VERSION="${LIBRIME_VERSION}"
 )

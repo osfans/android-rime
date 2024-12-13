@@ -4,24 +4,18 @@
 
 package com.osfans.trime.ui.fragments
 
-import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.get
 import com.osfans.trime.R
-import com.osfans.trime.core.Rime
-import com.osfans.trime.data.opencc.OpenCCDictManager
 import com.osfans.trime.ui.components.PaddingPreferenceFragment
 import com.osfans.trime.ui.main.MainViewModel
 import com.osfans.trime.util.Const
 import com.osfans.trime.util.formatDateTime
-import com.osfans.trime.util.toast
-import splitties.systemservices.clipboardManager
 
 class AboutFragment : PaddingPreferenceFragment() {
     private val viewModel: MainViewModel by activityViewModels()
@@ -33,32 +27,27 @@ class AboutFragment : PaddingPreferenceFragment() {
         setPreferencesFromResource(R.xml.about_preference, rootKey)
         with(preferenceScreen) {
             get<Preference>("about__changelog")?.apply {
-                summary = Const.displayVersionName
+                summary = Const.VERSION_NAME
                 isCopyingEnabled = true
                 intent =
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse("${Const.currentGitRepo}/commits/${Const.buildCommitHash}"),
+                        Uri.parse("${Const.GIT_REPO}/commits/${Const.BUILD_COMMIT_HASH}"),
                     )
             }
             get<Preference>("about__build_info")?.apply {
                 summary =
                     requireContext().getString(
                         R.string.about__build_info_format,
-                        Const.builder,
-                        Const.currentGitRepo,
-                        Const.buildCommitHash,
-                        formatDateTime(Const.buildTimestamp),
+                        Const.BUILDER,
+                        Const.GIT_REPO,
+                        Const.BUILD_COMMIT_HASH,
+                        formatDateTime(Const.BUILD_TIMESTAMP),
                     )
-                setOnPreferenceClickListener {
-                    val info = ClipData.newPlainText("BuildInfo", summary)
-                    clipboardManager.setPrimaryClip(info)
-                    context.toast(R.string.copy_done, Toast.LENGTH_LONG)
-                    true
-                }
+                isCopyingEnabled = true
             }
             get<Preference>("about__librime_version")?.apply {
-                val code = Rime.getLibrimeVersion()
+                val code = Const.LIBRIME_VERSION
                 val hash = extractCommitHash(code)
                 summary = code
                 intent?.data?.also {
@@ -66,7 +55,7 @@ class AboutFragment : PaddingPreferenceFragment() {
                 }
             }
             get<Preference>("about__opencc_version")?.apply {
-                val code = OpenCCDictManager.getOpenCCVersion()
+                val code = Const.OPENCC_VERSION
                 val hash = extractCommitHash(code)
                 summary = code
                 intent?.data?.also {
@@ -92,7 +81,7 @@ class AboutFragment : PaddingPreferenceFragment() {
         private val COMMON_PATTERN = Regex("^([^-]*)(-.*)$")
 
         private fun extractCommitHash(versionCode: String): String =
-            DASH_G_PATTERN.find(versionCode)?.groupValues?.get(1)
+            DASH_G_PATTERN.find(versionCode)?.groupValues?.get(2)
                 ?: COMMON_PATTERN.find(versionCode)?.groupValues?.get(1)
                 ?: versionCode
     }

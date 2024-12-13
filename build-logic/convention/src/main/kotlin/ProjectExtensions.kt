@@ -10,14 +10,22 @@ import java.io.File
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-fun Project.runCmd(cmd: String): String =
-    ByteArrayOutputStream().use {
-        project.exec {
-            commandLine = cmd.split(" ")
-            standardOutput = it
+fun Project.runCmd(
+    cmd: String,
+    default: String = "",
+    workingDir: File? = null,
+): String {
+    val stdout = ByteArrayOutputStream()
+    val result =
+        stdout.use {
+            project.exec {
+                commandLine = cmd.split(" ")
+                standardOutput = stdout
+                workingDir?.let { this.workingDir = it }
+            }
         }
-        it.toString().trim()
-    }
+    return if (result.exitValue == 0) stdout.toString().trim() else default
+}
 
 val Project.assetsDir: File
     get() = file("src/main/assets").also { it.mkdirs() }
@@ -44,8 +52,7 @@ val Project.buildGitRepo
     get() =
         envOrProp("BUILD_GIT_REPO", "buildGitRepo") {
             runCmd("git remote get-url origin")
-                .replaceFirst("^git@github\\.com:", "https://github.com/")
-                .replaceFirst("\\.git\$", "")
+                .replace("git@([^:]+):(.+)/(.+)\\.git".toRegex(), "https://$1/$2/$3")
         }
 
 val Project.buildVersionName
