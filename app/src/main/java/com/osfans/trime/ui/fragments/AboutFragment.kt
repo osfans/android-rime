@@ -20,7 +20,6 @@ import com.osfans.trime.ui.components.PaddingPreferenceFragment
 import com.osfans.trime.ui.main.MainViewModel
 import com.osfans.trime.util.Const
 import com.osfans.trime.util.formatDateTime
-import com.osfans.trime.util.thirdPartySummary
 import com.osfans.trime.util.toast
 import splitties.systemservices.clipboardManager
 
@@ -58,10 +57,22 @@ class AboutFragment : PaddingPreferenceFragment() {
                     true
                 }
             }
-            get<Preference>("about__librime_version")
-                ?.thirdPartySummary(Rime.getLibrimeVersion())
-            get<Preference>("about__opencc_version")
-                ?.thirdPartySummary(OpenCCDictManager.getOpenCCVersion())
+            get<Preference>("about__librime_version")?.apply {
+                val code = Rime.getLibrimeVersion()
+                val hash = extractCommitHash(code)
+                summary = code
+                intent?.data?.also {
+                    intent!!.data = Uri.withAppendedPath(it, "commit/$hash")
+                }
+            }
+            get<Preference>("about__opencc_version")?.apply {
+                val code = OpenCCDictManager.getOpenCCVersion()
+                val hash = extractCommitHash(code)
+                summary = code
+                intent?.data?.also {
+                    intent!!.data = Uri.withAppendedPath(it, "commit/$hash")
+                }
+            }
             get<Preference>("about__open_source_licenses")?.apply {
                 setOnPreferenceClickListener {
                     findNavController().navigate(R.id.action_aboutFragment_to_licenseFragment)
@@ -74,5 +85,15 @@ class AboutFragment : PaddingPreferenceFragment() {
     override fun onResume() {
         super.onResume()
         viewModel.setToolbarTitle(getString(R.string.pref_about))
+    }
+
+    companion object {
+        private val DASH_G_PATTERN = Regex("^(.*-g)([0-9a-f]+)(.*)$")
+        private val COMMON_PATTERN = Regex("^([^-]*)(-.*)$")
+
+        private fun extractCommitHash(versionCode: String): String =
+            DASH_G_PATTERN.find(versionCode)?.groupValues?.get(1)
+                ?: COMMON_PATTERN.find(versionCode)?.groupValues?.get(1)
+                ?: versionCode
     }
 }
