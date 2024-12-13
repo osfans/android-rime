@@ -115,9 +115,6 @@ object OpenCCDictManager {
         configFileName: String,
     ): String
 
-    @JvmStatic
-    external fun getOpenCCVersion(): String
-
     const val MODE_BIN_TO_TXT = true // OCD(2) to TXT
     const val MODE_TXT_TO_BIN = false // TXT to OCD2
 }

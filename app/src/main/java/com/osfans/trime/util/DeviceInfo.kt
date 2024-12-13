@@ -39,10 +39,10 @@ object DeviceInfo {
             )
             appendLine("--------- Build Info")
             appendLine("Package Name: ${BuildConfig.APPLICATION_ID}")
-            appendLine("Builder: ${Const.builder}")
+            appendLine("Builder: ${Const.BUILDER}")
             appendLine("Version Code: ${BuildConfig.VERSION_CODE}")
-            appendLine("Version Name: ${Const.displayVersionName}")
-            appendLine("Build Time: ${iso8601UTCDateTime(Const.buildTimestamp)}")
-            appendLine("Build Git Hash: ${Const.buildCommitHash}")
+            appendLine("Version Name: ${Const.VERSION_NAME}")
+            appendLine("Build Time: ${iso8601UTCDateTime(Const.BUILD_TIMESTAMP)}")
+            appendLine("Build Git Hash: ${Const.BUILD_COMMIT_HASH}")
         }
 }

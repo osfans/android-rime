@@ -397,9 +397,6 @@ class Rime :
         @JvmStatic
         external fun forgetRimeCandidate(index: Int): Boolean
 
-        @JvmStatic
-        external fun getLibrimeVersion(): String
-
         // module
         @JvmStatic
         external fun runRimeTask(taskName: String?): Boolean

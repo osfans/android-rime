@@ -7,10 +7,12 @@ package com.osfans.trime.util
 import com.osfans.trime.BuildConfig
 
 object Const {
-    val builder = BuildConfig.BUILDER
-    val buildTimestamp = BuildConfig.BUILD_TIMESTAMP
-    val buildCommitHash = BuildConfig.BUILD_COMMIT_HASH
-    val displayVersionName = "${BuildConfig.BUILD_VERSION_NAME}-${BuildConfig.BUILD_TYPE}"
-    val originalGitRepo = "https://github.com/osfans/trime"
-    val currentGitRepo = BuildConfig.BUILD_GIT_REPO
+    const val BUILDER = BuildConfig.BUILDER
+    const val BUILD_TIMESTAMP = BuildConfig.BUILD_TIMESTAMP
+    const val BUILD_COMMIT_HASH = BuildConfig.BUILD_COMMIT_HASH
+    const val VERSION_NAME = "${BuildConfig.BUILD_VERSION_NAME}-${BuildConfig.BUILD_TYPE}"
+    const val GIT_REPO = BuildConfig.BUILD_GIT_REPO
+
+    const val LIBRIME_VERSION = BuildConfig.LIBRIME_VERSION
+    const val OPENCC_VERSION = BuildConfig.OPENCC_VERSION
 }

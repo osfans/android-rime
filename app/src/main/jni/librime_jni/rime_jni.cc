@@ -474,12 +474,6 @@ Java_com_osfans_trime_core_Rime_forgetRimeCandidate(JNIEnv *env,
   return Rime::Instance().forgetCandidate(index);
 }
 
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_osfans_trime_core_Rime_getLibrimeVersion(JNIEnv *env,
-                                                  jclass /* thiz */) {
-  return env->NewStringUTF(LIBRIME_VERSION);
-}
-
 extern "C" JNIEXPORT jboolean JNICALL
 Java_com_osfans_trime_core_Rime_runRimeTask(JNIEnv *env, jclass /* thiz */,
                                             jstring task_name) {
