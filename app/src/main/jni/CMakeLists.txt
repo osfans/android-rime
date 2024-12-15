@@ -18,19 +18,16 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 option(BUILD_SHARED_LIBS "" OFF)
 option(BUILD_TESTING "" OFF)
 
-# iconv for Boost::locale
-include(Iconv)
-# workaround for boost install
-install(TARGETS iconv EXPORT boost_locale-targets)
-
 include(Boost)
 
 option(WITH_GFLAGS "Use gflags" OFF)
 option(WITH_GTEST "Use googletest" OFF)
 option(WITH_UNWIND "Enable libunwind support" OFF)
 add_subdirectory(librime/deps/glog)
-target_compile_options(glog_internal PRIVATE "-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.")
-target_compile_definitions(glog PRIVATE GLOG_OS_ANDROID) # remove when glog 0.8.0
+target_compile_options(
+  glog_internal PRIVATE "-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.")
+target_compile_definitions(glog PRIVATE GLOG_OS_ANDROID) # remove when glog
+                                                         # 0.8.0
 
 option(YAML_CPP_BUILD_TOOLS "" OFF)
 option(YAML_CPP_BUILD_TESTS "" OFF)
@@ -50,7 +47,8 @@ option(LEVELDB_INSTALL "" OFF)
 add_subdirectory(librime/deps/leveldb)
 
 add_subdirectory(librime/deps/marisa-trie)
-target_compile_options(marisa PRIVATE "-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.")
+target_compile_options(
+  marisa PRIVATE "-ffile-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}=.")
 
 set(LIBMARISA marisa)
 option(USE_SYSTEM_MARISA "" ON)
