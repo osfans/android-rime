@@ -35,8 +35,6 @@ set(BOOST_INCLUDE_LIBRARIES
     scope_exit
     signals2
     utility
-    uuid
-    # librime-charcode
-    locale)
+    uuid)
 
 add_subdirectory(boost EXCLUDE_FROM_ALL)

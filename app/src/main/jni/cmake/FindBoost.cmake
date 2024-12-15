@@ -17,6 +17,3 @@ foreach(__lib ${__boost_installed_libs})
   set(__full_dir "${CMAKE_SOURCE_DIR}/${__lib}/include")
   list(APPEND Boost_INCLUDE_DIRS "${__full_dir}")
 endforeach()
-
-# for librime-charcode
-set(Boost_LOCALE_LIBRARIES Boost::locale)
