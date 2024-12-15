@@ -12,9 +12,6 @@
 	path = app/src/main/jni/librime
 	url = https://github.com/rime/librime.git
 	ignore = dirty
-[submodule "libiconv"]
-	path = app/src/main/jni/libiconv
-	url = https://github.com/osfans/libiconv-gnu.git
 [submodule "librime-lua"]
 	path = app/src/main/jni/librime-lua
 	url = https://github.com/hchunhui/librime-lua
