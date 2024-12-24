@@ -35,6 +35,7 @@ class CandidateItemUi(
     private val maybeCommentTextColor = ColorManager.getColor("comment_text_color")
     private val maybeHighlightedCandidateTextColor = ColorManager.getColor("hilited_candidate_text_color")
     private val maybeHighlightedCommentTextColor = ColorManager.getColor("hilited_comment_text_color")
+    private val maybeHighlightedCandidateBackColor = ColorManager.getColor("hilited_candidate_back_color")
 
     val label =
         textView {
@@ -58,7 +59,6 @@ class CandidateItemUi(
 
     override val root =
         constraintLayout {
-            background = ColorManager.getColor("hilited_candidate_back_color")?.let { pressHighlightDrawable(it) }
             if (theme.generalStyle.commentOnTop) {
                 add(
                     altLabel,
@@ -102,9 +102,11 @@ class CandidateItemUi(
         if (yes) {
             maybeHighlightedCandidateTextColor?.let { label.setTextColor(it) }
             maybeHighlightedCommentTextColor?.let { altLabel.setTextColor(it) }
+            maybeHighlightedCandidateBackColor?.let { root.setBackgroundColor(it) }
         } else {
             maybeCandidateTextColor?.let { label.setTextColor(it) }
             maybeCommentTextColor?.let { altLabel.setTextColor(it) }
+            maybeHighlightedCandidateBackColor?.let { root.background = pressHighlightDrawable(it) }
         }
     }
 }
