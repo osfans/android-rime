@@ -10,6 +10,7 @@ import android.text.Spanned
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.view.MotionEvent
+import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.text.buildSpannedString
@@ -62,6 +63,18 @@ open class PreeditUi(
             }
         }
 
+    private fun updateTextView(
+        str: CharSequence,
+        visible: Boolean,
+    ) = preedit.run {
+        if (visible) {
+            text = str
+            if (visibility == View.GONE) visibility = View.VISIBLE
+        } else if (visibility != View.GONE) {
+            visibility = View.GONE
+        }
+    }
+
     fun update(inputComposition: RimeProto.Context.Composition) {
         val string = inputComposition.toSpannedString()
         val cursorPos = inputComposition.cursorPos
@@ -75,6 +88,6 @@ open class PreeditUi(
                     append(string, cursorPos, string.length)
                 }
             }
-        if (hasPreedit) preedit.text = stringWithCursor
+        updateTextView(stringWithCursor, hasPreedit)
     }
 }

@@ -64,13 +64,14 @@ class PreeditModule(
         PopupWindow(ui.root).apply {
             width = WindowManager.LayoutParams.WRAP_CONTENT
             height = WindowManager.LayoutParams.WRAP_CONTENT
+            animationStyle = 0
         }
 
     override fun onInputContextUpdate(ctx: RimeProto.Context) {
         ui.update(ctx.composition)
         if (ctx.composition.length > 0) {
-            window.showAtLocation(bar.view, Gravity.START or Gravity.TOP, 0, 0)
             val (x, y) = intArrayOf(0, 0).also { bar.view.getLocationInWindow(it) }
+            window.showAtLocation(bar.view, Gravity.START or Gravity.TOP, x, y)
             ui.root.post {
                 window.update(x, y - ui.root.height, -1, -1)
             }
