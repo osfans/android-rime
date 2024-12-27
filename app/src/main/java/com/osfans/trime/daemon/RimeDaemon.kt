@@ -6,19 +6,29 @@ package com.osfans.trime.daemon
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.osfans.trime.R
 import com.osfans.trime.TrimeApplication
 import com.osfans.trime.core.Rime
 import com.osfans.trime.core.RimeApi
 import com.osfans.trime.core.RimeLifecycle
+import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.core.lifecycleScope
 import com.osfans.trime.core.whenReady
+import com.osfans.trime.ui.main.LogActivity
 import com.osfans.trime.util.appContext
+import com.osfans.trime.util.toast
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import splitties.systemservices.notificationManager
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -120,6 +130,7 @@ object RimeDaemon {
     }
 
     private const val CHANNEL_ID = "rime-daemon"
+    private const val MESSAGE_ID = 2331
     private var restartId = 0
 
     /**
@@ -140,6 +151,9 @@ object RimeDaemon {
                 .let { notificationManager.notify(id, it) }
             realRime.finalize()
             realRime.startup(fullCheck)
+            realRime.messageFlow
+                .onEach(::handleRimeMessage)
+                .launchIn(TrimeApplication.getInstance().coroutineScope)
             TrimeApplication.getInstance().coroutineScope.launch {
                 // cancel notification on ready
                 realRime.lifecycle.whenReady {
@@ -147,4 +161,56 @@ object RimeDaemon {
                 }
             }
         }
+
+    private suspend fun handleRimeMessage(it: RimeMessage<*>) {
+        if (it is RimeMessage.DeployMessage) {
+            when (it.data) {
+                RimeMessage.DeployMessage.State.Start -> {
+                    withContext(Dispatchers.IO) {
+                        Runtime.getRuntime().exec(arrayOf("logcat", "-c"))
+                    }
+                }
+                RimeMessage.DeployMessage.State.Success -> {
+                    ContextCompat.getMainExecutor(appContext).execute {
+                        appContext.toast(R.string.deploy_finish)
+                    }
+                }
+                RimeMessage.DeployMessage.State.Failure -> {
+                    val intent =
+                        Intent(appContext, LogActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            val log =
+                                withContext(Dispatchers.IO) {
+                                    Runtime
+                                        .getRuntime()
+                                        .exec(
+                                            arrayOf("logcat", "-d", "-v", "brief", "-s", "rime.trime:W"),
+                                        ).inputStream
+                                        .bufferedReader()
+                                        .readText()
+                                }
+                            putExtra(LogActivity.FROM_DEPLOY, true)
+                            putExtra(LogActivity.DEPLOY_FAILURE_TRACE, log)
+                        }
+                    NotificationCompat
+                        .Builder(appContext, CHANNEL_ID)
+                        .setSmallIcon(R.drawable.ic_baseline_warning_24)
+                        .setContentTitle(appContext.getString(R.string.rime_daemon))
+                        .setContentText(appContext.getString(R.string.view_deploy_failure_log))
+                        .setContentIntent(
+                            PendingIntent.getActivity(
+                                appContext,
+                                0,
+                                intent,
+                                PendingIntent.FLAG_UPDATE_CURRENT,
+                            ),
+                        ).setOngoing(false)
+                        .setAutoCancel(true)
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .build()
+                        .let { notificationManager.notify(MESSAGE_ID, it) }
+                }
+            }
+        }
+    }
 }

@@ -4,6 +4,7 @@
 
 package com.osfans.trime.ui.main
 
+import android.content.ClipData
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -28,6 +29,7 @@ import com.osfans.trime.util.toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
+import splitties.systemservices.clipboardManager
 
 /**
  * The activity to show [LogView].
@@ -41,7 +43,9 @@ class LogActivity : AppCompatActivity() {
 
     companion object {
         const val FROM_CRASH = "from_crash"
+        const val FROM_DEPLOY = "from_deploy"
         const val CRASH_STACK_TRACE = "crash_stack_trace"
+        const val DEPLOY_FAILURE_TRACE = "deploy_failure_trace"
     }
 
     private fun registerLauncher() {
@@ -88,6 +92,7 @@ class LogActivity : AppCompatActivity() {
             if (intent.hasExtra(FROM_CRASH)) {
                 supportActionBar!!.setTitle(R.string.crash_logs)
                 clearButton.visibility = View.GONE
+                copyButton.visibility = View.GONE
                 AlertDialog
                     .Builder(this@LogActivity)
                     .setTitle(R.string.app_crash)
@@ -97,11 +102,16 @@ class LogActivity : AppCompatActivity() {
                 logView.append("--------- Crash stacktrace")
                 logView.append(intent.getStringExtra(CRASH_STACK_TRACE) ?: "<empty>")
                 logView.setLogcat(Logcat(TrimeApplication.getLastPid()))
+            } else if (intent.hasExtra(FROM_DEPLOY)) {
+                supportActionBar!!.setTitle(R.string.deploy_failure)
+                clearButton.visibility = View.GONE
+                logView.append(intent.getStringExtra(DEPLOY_FAILURE_TRACE) ?: "<empty>")
             } else {
                 supportActionBar!!.apply {
                     setDisplayHomeAsUpEnabled(true)
                     setTitle(R.string.real_time_logs)
                 }
+                copyButton.visibility = View.GONE
                 logView.setLogcat(Logcat())
             }
             clearButton.setOnClickListener {
@@ -109,6 +119,13 @@ class LogActivity : AppCompatActivity() {
             }
             exportButton.setOnClickListener {
                 launcher.launch("$packageName-${iso8601UTCDateTime()}.txt")
+            }
+            copyButton.setOnClickListener {
+                val data = ClipData.newPlainText("log", logView.currentLog)
+                clipboardManager.setPrimaryClip(data)
+                if (clipboardManager.hasPrimaryClip()) {
+                    toast(R.string.copy_done)
+                }
             }
             jumpToBottomButton.setOnClickListener {
                 logView.scrollToBottom()
