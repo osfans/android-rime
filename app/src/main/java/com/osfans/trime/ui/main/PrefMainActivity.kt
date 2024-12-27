@@ -4,7 +4,6 @@
 
 package com.osfans.trime.ui.main
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -14,6 +13,7 @@ import android.view.MenuItem
 import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
@@ -35,10 +35,9 @@ import com.osfans.trime.daemon.RimeDaemon
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.sound.SoundEffectManager
 import com.osfans.trime.databinding.ActivityPrefBinding
+import com.osfans.trime.ui.components.ProgressBarDialogIndeterminate
 import com.osfans.trime.ui.setup.SetupActivity
 import com.osfans.trime.util.isStorageAvailable
-import com.osfans.trime.util.progressBarDialogIndeterminate
-import com.osfans.trime.util.rimeActionWithResultDialog
 import kotlinx.coroutines.launch
 import splitties.systemservices.alarmManager
 import splitties.views.topPadding
@@ -128,14 +127,13 @@ class PrefMainActivity : AppCompatActivity() {
                 viewModel.rime.run { stateFlow }.collect { state ->
                     when (state) {
                         RimeLifecycle.State.STARTING -> {
-                            loadingDialog?.dismiss()
-                            loadingDialog =
-                                progressBarDialogIndeterminate(R.string.deploy_progress).create().apply {
-                                    show()
-                                }
+                            loadingDialog = ProgressBarDialogIndeterminate(R.string.deploy_progress).show()
                         }
-                        RimeLifecycle.State.READY -> loadingDialog?.dismiss()
-                        else -> return@collect
+                        RimeLifecycle.State.READY -> {
+                            loadingDialog?.dismiss()
+                            loadingDialog = null
+                        }
+                        else -> {}
                     }
                 }
             }
@@ -153,7 +151,9 @@ class PrefMainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when (item.itemId) {
             R.id.preference__menu_deploy -> {
-                deploy()
+                lifecycleScope.launch {
+                    RimeDaemon.restartRime(true)
+                }
                 true
             }
             R.id.preference__menu_about -> {
@@ -163,26 +163,11 @@ class PrefMainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
 
-    private fun deploy() {
-        lifecycleScope.launch {
-            rimeActionWithResultDialog("rime.trime", "W", 1) {
-                RimeDaemon.restartRime(true)
-                true
-            }
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         if (isStorageAvailable()) {
             SoundEffectManager.init()
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        loadingDialog?.dismiss()
-        loadingDialog = null
     }
 
     private fun checkScheduleExactAlarmPermission() {
