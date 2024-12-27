@@ -27,13 +27,12 @@ import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.ui.components.FolderPickerPreference
 import com.osfans.trime.ui.components.PaddingPreferenceFragment
 import com.osfans.trime.ui.components.TimePickerPreference
+import com.osfans.trime.ui.components.withLoadingDialog
 import com.osfans.trime.ui.main.MainViewModel
 import com.osfans.trime.util.ResourceUtils
 import com.osfans.trime.util.appContext
 import com.osfans.trime.util.formatDateTime
-import com.osfans.trime.util.rimeActionWithResultDialog
 import com.osfans.trime.util.toast
-import com.osfans.trime.util.withLoadingDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -70,11 +69,8 @@ class ProfileFragment :
             }
             get<Preference>("profile_sync_user_data")?.setOnPreferenceClickListener {
                 lifecycleScope.launch {
-                    this@ProfileFragment.context?.rimeActionWithResultDialog("rime.trime", "W", 1) {
-                        Rime.syncRimeUserData()
-                        RimeDaemon.restartRime(true)
-                        true
-                    }
+                    Rime.syncRimeUserData()
+                    RimeDaemon.restartRime(true)
                 }
                 true
             }
