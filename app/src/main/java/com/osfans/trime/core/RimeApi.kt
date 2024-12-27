@@ -7,7 +7,7 @@ package com.osfans.trime.core
 import kotlinx.coroutines.flow.SharedFlow
 
 interface RimeApi {
-    val callbackFlow: SharedFlow<RimeCallback>
+    val messageFlow: SharedFlow<RimeMessage<*>>
 
     val stateFlow: SharedFlow<RimeLifecycle.State>
 

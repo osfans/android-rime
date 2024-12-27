@@ -149,7 +149,7 @@ class GlobalRefSingleton {
   jmethodID PairSecond;
 
   jclass Rime;
-  jmethodID HandleRimeNotification;
+  jmethodID HandleRimeMessage;
 
   jclass CandidateItem;
   jmethodID CandidateItemInit;
@@ -217,9 +217,8 @@ class GlobalRefSingleton {
 
     Rime = reinterpret_cast<jclass>(
         env->NewGlobalRef(env->FindClass("com/osfans/trime/core/Rime")));
-    HandleRimeNotification =
-        env->GetStaticMethodID(Rime, "handleRimeNotification",
-                               "(Ljava/lang/String;Ljava/lang/String;)V");
+    HandleRimeMessage = env->GetStaticMethodID(Rime, "handleRimeMessage",
+                                               "(I[Ljava/lang/Object;)V");
 
     CandidateItem = reinterpret_cast<jclass>(env->NewGlobalRef(
         env->FindClass("com/osfans/trime/core/CandidateItem")));

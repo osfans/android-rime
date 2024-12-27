@@ -37,10 +37,8 @@ import com.osfans.trime.core.KeyModifiers
 import com.osfans.trime.core.KeyValue
 import com.osfans.trime.core.Rime
 import com.osfans.trime.core.RimeApi
-import com.osfans.trime.core.RimeCallback
-import com.osfans.trime.core.RimeEvent
 import com.osfans.trime.core.RimeKeyMapping
-import com.osfans.trime.core.RimeNotification
+import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.core.RimeProto
 import com.osfans.trime.daemon.RimeDaemon
 import com.osfans.trime.daemon.RimeSession
@@ -166,8 +164,8 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             jobs.consumeEach { it.join() }
         }
         lifecycleScope.launch {
-            rime.run { callbackFlow }.collect {
-                handleRimeCallback(it)
+            rime.run { messageFlow }.collect {
+                handleRimeMessage(it)
             }
         }
         ThemeManager.addOnChangedListener(onThemeChangeListener)
@@ -214,28 +212,26 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         }
     }
 
-    private fun handleRimeCallback(it: RimeCallback) {
+    private fun handleRimeMessage(it: RimeMessage<*>) {
         when (it) {
-            is RimeNotification.OptionNotification -> {
-                val value = it.value.value
-                when (it.value.option) {
+            is RimeMessage.OptionMessage -> {
+                val (option, value) = it.data
+                when (option) {
                     "ascii_mode" -> {
                         InputFeedbackManager.ttsLanguage =
                             locales[if (value) 1 else 0]
                     }
                 }
             }
-            is RimeEvent.IpcResponseEvent ->
+            is RimeMessage.ResponseMessage ->
                 it.data.let event@{
                     val (commit, ctx) = it
-                    if (commit?.text?.isNotEmpty() == true) {
+                    if (commit.text?.isNotEmpty() == true) {
                         commitText(commit.text)
                     }
-                    if (ctx != null) {
-                        updateComposingText(ctx)
-                    }
+                    updateComposingText(ctx)
                 }
-            is RimeEvent.KeyEvent ->
+            is RimeMessage.KeyMessage ->
                 it.data.let event@{
                     val keyCode = it.value.keyCode
                     if (keyCode != KeyEvent.KEYCODE_UNKNOWN) {

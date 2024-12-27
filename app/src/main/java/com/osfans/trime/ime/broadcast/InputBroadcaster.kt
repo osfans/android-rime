@@ -5,7 +5,7 @@
 package com.osfans.trime.ime.broadcast
 
 import android.view.inputmethod.EditorInfo
-import com.osfans.trime.core.RimeNotification.OptionNotification
+import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.core.RimeProto
 import com.osfans.trime.core.SchemaItem
 import com.osfans.trime.ime.dependency.InputScope
@@ -49,7 +49,7 @@ class InputBroadcaster : InputBroadcastReceiver {
         receivers.forEach { it.onRimeSchemaUpdated(schema) }
     }
 
-    override fun onRimeOptionUpdated(value: OptionNotification.Value) {
+    override fun onRimeOptionUpdated(value: RimeMessage.OptionMessage.Data) {
         receivers.forEach { it.onRimeOptionUpdated(value) }
     }
 

@@ -18,9 +18,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
-import com.osfans.trime.core.RimeCallback
-import com.osfans.trime.core.RimeEvent
-import com.osfans.trime.core.RimeNotification
+import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.ColorManager
@@ -322,20 +320,20 @@ class InputView(
         }
     }
 
-    private val baseCallbackHandler =
-        object : BaseCallbackHandler(service, rime) {
-            override fun handleRimeCallback(it: RimeCallback) {
+    private val baseMessageHandler =
+        object : BaseMessageHandler(service, rime) {
+            override fun handleRimeMessage(it: RimeMessage<*>) {
                 when (it) {
-                    is RimeNotification.SchemaNotification -> {
-                        broadcaster.onRimeSchemaUpdated(it.value)
+                    is RimeMessage.SchemaMessage -> {
+                        broadcaster.onRimeSchemaUpdated(it.data)
 
                         windowManager.attachWindow(KeyboardWindow)
                     }
 
-                    is RimeNotification.OptionNotification -> {
-                        broadcaster.onRimeOptionUpdated(it.value)
+                    is RimeMessage.OptionMessage -> {
+                        broadcaster.onRimeOptionUpdated(it.data)
 
-                        if (it.value.option == "_liquid_keyboard") {
+                        if (it.data.option == "_liquid_keyboard") {
                             ContextCompat.getMainExecutor(service).execute {
                                 windowManager.attachWindow(LiquidKeyboard)
                                 liquidKeyboard.select(0)
@@ -343,12 +341,9 @@ class InputView(
                         }
                     }
 
-                    is RimeEvent.IpcResponseEvent ->
+                    is RimeMessage.ResponseMessage ->
                         it.data.let event@{
-                            val ctx = it.context
-                            if (ctx != null) {
-                                broadcaster.onInputContextUpdate(ctx)
-                            }
+                            broadcaster.onInputContextUpdate(it.context)
                         }
 
                     else -> {}
@@ -356,10 +351,10 @@ class InputView(
             }
         }
 
-    var handleCallback: Boolean
-        get() = baseCallbackHandler.handleCallback
+    var handleMessage: Boolean
+        get() = baseMessageHandler.handleMessage
         set(value) {
-            baseCallbackHandler.handleCallback = value
+            baseMessageHandler.handleMessage = value
         }
 
     fun updateSelection(
@@ -373,7 +368,7 @@ class InputView(
         ViewCompat.setOnApplyWindowInsetsListener(this, null)
         // cancel the notification job and clear all broadcast receivers,
         // implies that InputView should not be attached again after detached.
-        baseCallbackHandler.cancelJob()
+        baseMessageHandler.cancelJob()
         updateWindowViewHeightJob.cancel()
         preedit.onDetached()
         preview.root.removeAllViews()

@@ -14,7 +14,7 @@ import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
 import com.osfans.trime.R
 import com.osfans.trime.core.Rime
-import com.osfans.trime.core.RimeNotification.OptionNotification
+import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.core.SchemaItem
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.data.prefs.AppPrefs
@@ -264,7 +264,7 @@ class KeyboardWindow(
         switchKeyboard(schema.id)
     }
 
-    override fun onRimeOptionUpdated(value: OptionNotification.Value) {
+    override fun onRimeOptionUpdated(value: RimeMessage.OptionMessage.Data) {
         when (val opt = value.option) {
             "ascii_mode" -> currentKeyboard?.currentAsciiMode = value.value
             "_hide_key_hint" -> currentKeyboardView?.showKeyHint = !value.value
