@@ -193,9 +193,19 @@ extern "C" JNIEXPORT void JNICALL Java_com_osfans_trime_core_Rime_startupRime(
                                 const char *message_type,
                                 const char *message_value) {
     auto env = GlobalRef->AttachEnv();
-    env->CallStaticVoidMethod(
-        GlobalRef->Rime, GlobalRef->HandleRimeNotification,
-        *JString(env, message_type), *JString(env, message_value));
+    int type = 0;  // unknown
+    if (strcmp(message_type, "schema") == 0) {
+      type = 1;
+    } else if (strcmp(message_type, "option") == 0) {
+      type = 2;
+    } else if (strcmp(message_type, "deploy") == 0) {
+      type = 3;
+    }
+    auto vararg = JRef<jobjectArray>(
+        env, env->NewObjectArray(1, GlobalRef->Object, nullptr));
+    env->SetObjectArrayElement(vararg, 0, JString(env, message_value));
+    env->CallStaticVoidMethod(GlobalRef->Rime, GlobalRef->HandleRimeMessage,
+                              type, *vararg);
   };
 
   Rime::Instance().startup(full_check, notificationHandler);

@@ -16,13 +16,12 @@ import androidx.core.graphics.component1
 import androidx.core.graphics.component2
 import androidx.core.graphics.component3
 import androidx.core.graphics.component4
-import com.osfans.trime.core.RimeCallback
-import com.osfans.trime.core.RimeEvent
+import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
-import com.osfans.trime.ime.core.BaseCallbackHandler
+import com.osfans.trime.ime.core.BaseMessageHandler
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import splitties.dimensions.dp
 import timber.log.Timber
@@ -125,32 +124,31 @@ class ComposingPopupWindow(
             window.update(x, y, -1, -1)
         }
 
-    private val baseCallbackHandler =
-        object : BaseCallbackHandler(service, rime) {
-            override fun handleRimeCallback(it: RimeCallback) {
-                if (it is RimeEvent.IpcResponseEvent) {
-                    it.data.context?.let ctx@{
-                        if (it.composition.length > 0) {
-                            root.update(it)
-                            Timber.d("Update! Ready to showup")
-                            updatePosition()
-                        } else {
-                            dismiss()
-                        }
+    private val baseMessageHandler =
+        object : BaseMessageHandler(service, rime) {
+            override fun handleRimeMessage(it: RimeMessage<*>) {
+                if (it is RimeMessage.ResponseMessage) {
+                    val ctx = it.data.context
+                    if (ctx.composition.length > 0) {
+                        root.update(ctx)
+                        Timber.d("Update! Ready to showup")
+                        updatePosition()
+                    } else {
+                        dismiss()
                     }
                 }
             }
         }
 
-    var handleCallback: Boolean
-        get() = baseCallbackHandler.handleCallback
+    var handleMessage: Boolean
+        get() = baseMessageHandler.handleMessage
         set(value) {
-            baseCallbackHandler.handleCallback = value
+            baseMessageHandler.handleMessage = value
         }
 
     fun cancelJob() {
         dismiss()
-        baseCallbackHandler.cancelJob()
+        baseMessageHandler.cancelJob()
     }
 
     fun dismiss() {

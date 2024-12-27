@@ -10,7 +10,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.ViewAnimator
 import androidx.lifecycle.lifecycleScope
 import com.osfans.trime.R
-import com.osfans.trime.core.RimeNotification.OptionNotification
+import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.core.RimeProto
 import com.osfans.trime.core.SchemaItem
 import com.osfans.trime.daemon.RimeSession
@@ -199,7 +199,7 @@ class QuickBar(
         }
     }
 
-    override fun onRimeOptionUpdated(value: OptionNotification.Value) {
+    override fun onRimeOptionUpdated(value: RimeMessage.OptionMessage.Data) {
         when (value.option) {
             "_hide_comment" -> {
                 // candidateUi.candidates.shouldShowComment = !value.value

@@ -6,42 +6,42 @@
 package com.osfans.trime.ime.core
 
 import androidx.lifecycle.lifecycleScope
-import com.osfans.trime.core.RimeCallback
+import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.daemon.RimeSession
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-open class BaseCallbackHandler(
+open class BaseMessageHandler(
     val service: TrimeInputMethodService,
     val rime: RimeSession,
 ) {
-    open fun handleRimeCallback(it: RimeCallback) {}
+    open fun handleRimeMessage(it: RimeMessage<*>) {}
 
-    private var callbackHandlerJob: Job? = null
+    private var messageHandlerJob: Job? = null
 
     private fun setupFcitxEventHandler() {
-        callbackHandlerJob =
+        messageHandlerJob =
             service.lifecycleScope.launch {
-                rime.run { callbackFlow }.collect {
-                    handleRimeCallback(it)
+                rime.run { messageFlow }.collect {
+                    handleRimeMessage(it)
                 }
             }
     }
 
-    var handleCallback = false
+    var handleMessage = false
         set(value) {
             field = value
             if (field) {
-                if (callbackHandlerJob == null) {
+                if (messageHandlerJob == null) {
                     setupFcitxEventHandler()
                 }
             } else {
-                callbackHandlerJob?.cancel()
-                callbackHandlerJob = null
+                messageHandlerJob?.cancel()
+                messageHandlerJob = null
             }
         }
 
     fun cancelJob() {
-        handleCallback = false
+        handleMessage = false
     }
 }
