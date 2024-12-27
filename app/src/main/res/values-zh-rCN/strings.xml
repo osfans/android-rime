@@ -241,4 +241,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="top_left">左上</string>
     <string name="top_right">右上</string>
     <string name="display_position">显示位置</string>
+    <string name="deploy_failure">部署失败</string>
+    <string name="view_deploy_failure_log">部署失败。点此查看错误日志。</string>
 </resources>

@@ -241,4 +241,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="top_left">Top left</string>
     <string name="top_right">Top right</string>
     <string name="display_position">Display position</string>
+    <string name="deploy_failure">Deploy failure</string>
+    <string name="view_deploy_failure_log">Deploy failure. Click here to view error log.</string>
 </resources>

@@ -55,6 +55,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
             android:text="@string/export" />
 
         <Button
+            android:id="@+id/copyButton"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@android:string/copy" />
+
+        <Button
             android:id="@+id/jumpToBottomButton"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
