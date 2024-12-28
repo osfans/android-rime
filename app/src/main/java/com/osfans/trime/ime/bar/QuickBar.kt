@@ -50,7 +50,7 @@ class QuickBar(
 
     private val prefs = AppPrefs.defaultInstance()
 
-    private val showSwitchers get() = prefs.keyboard.switchesEnabled
+    private val showSwitchers by prefs.keyboard.switchesEnabled
 
     val themedHeight =
         theme.generalStyle.candidateViewHeight + theme.generalStyle.commentHeight
@@ -72,10 +72,10 @@ class QuickBar(
                 setOnSwitchClick { switch ->
                     val prevEnabled = switch.enabled
                     switch.enabled =
-                        if (switch.options.isNullOrEmpty()) {
+                        if (switch.options.isEmpty()) {
                             (1 - prevEnabled).also { newValue ->
                                 rime.launchOnReady {
-                                    it.setRuntimeOption(switch.name!!, newValue == 1)
+                                    it.setRuntimeOption(switch.name, newValue == 1)
                                 }
                             }
                         } else {

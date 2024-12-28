@@ -145,8 +145,8 @@ class AppPrefs(
 
         val softCursorEnabled by bool(SOFT_CURSOR_ENABLED, true)
         val popupKeyPressEnabled = bool(POPUP_KEY_PRESS_ENABLED, false)
-        val switchesEnabled by bool(SWITCHES_ENABLED, true)
-        val switchArrowEnabled by bool(SWITCH_ARROW_ENABLED, true)
+        val switchesEnabled = bool(SWITCHES_ENABLED, true)
+        val switchArrowEnabled = bool(SWITCH_ARROW_ENABLED, true)
 
         enum class LandscapeModeOption {
             NEVER,

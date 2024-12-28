@@ -15,7 +15,7 @@ import com.osfans.trime.data.theme.Theme
 class SwitchesAdapter(
     private val theme: Theme,
 ) : BaseQuickAdapter<Schema.Switch, SwitchesAdapter.Holder>() {
-    private val showArrow = AppPrefs.defaultInstance().keyboard.switchArrowEnabled
+    private val showArrow by AppPrefs.defaultInstance().keyboard.switchArrowEnabled
 
     inner class Holder(
         val ui: SwitchUi,
@@ -34,9 +34,9 @@ class SwitchesAdapter(
     ) {
         holder.ui.apply {
             val enabled = item!!.enabled
-            setLabel(item.states!![enabled])
+            setFirstText(item.states[enabled])
             val altText =
-                if (item.options.isNullOrEmpty()) {
+                if (item.options.isEmpty()) {
                     item.states[1 - enabled].let {
                         if (showArrow) {
                             "→ $it"
@@ -47,7 +47,7 @@ class SwitchesAdapter(
                 } else {
                     ""
                 }
-            setAltLabel(altText)
+            setLastText(altText)
         }
     }
 }
