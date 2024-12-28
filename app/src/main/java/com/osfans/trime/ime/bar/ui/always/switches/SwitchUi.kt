@@ -12,23 +12,17 @@ import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.util.rippleDrawable
 import splitties.dimensions.dp
-import splitties.views.dsl.constraintlayout.above
-import splitties.views.dsl.constraintlayout.after
-import splitties.views.dsl.constraintlayout.before
-import splitties.views.dsl.constraintlayout.below
-import splitties.views.dsl.constraintlayout.bottomOfParent
 import splitties.views.dsl.constraintlayout.centerHorizontally
 import splitties.views.dsl.constraintlayout.centerVertically
 import splitties.views.dsl.constraintlayout.constraintLayout
-import splitties.views.dsl.constraintlayout.endOfParent
-import splitties.views.dsl.constraintlayout.lParams
-import splitties.views.dsl.constraintlayout.startOfParent
-import splitties.views.dsl.constraintlayout.topOfParent
+import splitties.views.dsl.constraintlayout.horizontalChain
+import splitties.views.dsl.constraintlayout.packed
+import splitties.views.dsl.constraintlayout.verticalChain
 import splitties.views.dsl.core.Ui
-import splitties.views.dsl.core.add
 import splitties.views.dsl.core.matchParent
 import splitties.views.dsl.core.textView
 import splitties.views.dsl.core.wrapContent
+import splitties.views.gravityCenter
 import splitties.views.horizontalPadding
 
 class SwitchUi(
@@ -37,17 +31,20 @@ class SwitchUi(
 ) : Ui {
     var enabled: Int = -1
 
-    private val label =
+    private val firstText =
         textView {
-            textSize = theme.generalStyle.candidateTextSize.toFloat()
+            textSize = theme.generalStyle.candidateTextSize
             typeface = FontManager.getTypeface("candidate_font")
+            isSingleLine = true
+            gravity = gravityCenter
             ColorManager.getColor("candidate_text_color")?.let { setTextColor(it) }
         }
 
-    private val altLabel =
+    private val lastText =
         textView {
-            textSize = theme.generalStyle.commentTextSize.toFloat()
+            textSize = theme.generalStyle.commentTextSize
             typeface = FontManager.getTypeface("comment_font")
+            isSingleLine = true
             ColorManager.getColor("comment_text_color")?.let { setTextColor(it) }
             visibility = View.GONE
         }
@@ -58,50 +55,29 @@ class SwitchUi(
             layoutParams = ViewGroup.LayoutParams(wrapContent, matchParent)
             background = rippleDrawable(ColorManager.getColor("hilited_candidate_back_color")!!)
             if (theme.generalStyle.commentOnTop) {
-                add(
-                    altLabel,
-                    lParams(wrapContent, wrapContent) {
-                        bottomMargin = dp(-3)
-                        topOfParent()
-                        above(label)
-                        centerHorizontally()
-                    },
-                )
-                add(
-                    label,
-                    lParams(wrapContent, wrapContent) {
-                        topMargin = dp(-3)
-                        below(altLabel)
-                        centerHorizontally()
-                        bottomOfParent()
-                    },
+                verticalChain(
+                    listOf(lastText, firstText),
+                    style = packed,
+                    defaultHeight = wrapContent,
+                    defaultWidth = wrapContent,
+                    initParams = { centerHorizontally() },
                 )
             } else {
-                add(
-                    label,
-                    lParams(wrapContent, wrapContent) {
-                        startOfParent()
-                        before(altLabel)
-                        centerVertically()
-                    },
-                )
-                add(
-                    altLabel,
-                    lParams(wrapContent, wrapContent) {
-                        after(label)
-                        centerVertically()
-                        endOfParent()
-                    },
+                horizontalChain(
+                    listOf(firstText, lastText),
+                    style = packed,
+                    defaultWidth = wrapContent,
+                    initParams = { centerVertically() },
                 )
             }
         }
 
-    fun setLabel(str: String) {
-        label.text = str
+    fun setFirstText(str: String) {
+        firstText.text = str
     }
 
-    fun setAltLabel(str: String) {
-        altLabel.run {
+    fun setLastText(str: String) {
+        lastText.run {
             if (str.isNotEmpty()) {
                 text = str
                 if (visibility == View.GONE) visibility = View.VISIBLE

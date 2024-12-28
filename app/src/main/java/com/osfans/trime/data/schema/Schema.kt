@@ -28,10 +28,10 @@ class Schema(
 
     @Serializable
     data class Switch(
-        val name: String? = null,
-        val options: List<String>? = listOf(),
-        val reset: Int? = null,
-        val states: List<String>? = listOf(),
+        val name: String = "",
+        val options: List<String> = listOf(),
+        val reset: Int = -1,
+        val states: List<String> = listOf(),
         @Transient var enabled: Int = 0,
     )
 }
