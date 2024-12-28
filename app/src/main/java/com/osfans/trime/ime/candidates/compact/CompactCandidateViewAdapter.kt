@@ -62,14 +62,12 @@ open class CompactCandidateViewAdapter(
         position: Int,
         item: CandidateItem?,
     ) {
-        val (comment, text) = item!!
-        holder.ui.run {
-            label.text = text
-            altLabel.text = comment
-            highlight(theme.generalStyle.candidateUseCursor && position == highlightedIdx)
-        }
-        holder.text = text
-        holder.comment = comment
+        item ?: return
+        val isHighlighted = theme.generalStyle.candidateUseCursor && position == highlightedIdx
+        val obtainComment = items.any { it.comment.isNotEmpty() }
+        holder.ui.update(item, isHighlighted, obtainComment)
+        holder.text = item.text
+        holder.comment = item.comment
         holder.idx = previous + position // unused
         holder.ui.root.updateLayoutParams<FlexboxLayoutManager.LayoutParams> {
             minWidth = 0
