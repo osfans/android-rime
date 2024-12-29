@@ -429,7 +429,10 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         attribute: EditorInfo,
         restarting: Boolean,
     ) {
-        Timber.d("onStartInputView: restarting=%s", restarting)
+        Timber.d("onStartInputView: restarting=$restarting")
+        if (!restarting) {
+            currentInputConnection?.monitorCursorAnchor()
+        }
         postRimeJob {
             updateRimeOption(this)
             InputFeedbackManager.loadSoundEffects(this@TrimeInputMethodService)
@@ -440,10 +443,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             ContextCompat.getMainExecutor(this@TrimeInputMethodService).execute {
                 if (inputDeviceManager.evaluateOnStartInputView(attribute, this@TrimeInputMethodService)) {
                     inputView?.startInput(attribute, restarting)
-                } else {
-                    if (!restarting) {
-                        currentInputConnection?.monitorCursorAnchor()
-                    }
                 }
             }
             when (attribute.inputType and InputType.TYPE_MASK_VARIATION) {
