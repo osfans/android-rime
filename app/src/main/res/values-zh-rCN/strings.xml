@@ -90,16 +90,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
         <item>总是</item>
         <item>从不</item>
     </string-array>
-    <string name="speech__error_audio">录音错误</string>
-    <string name="speech__error_client">客户端</string>
-    <string name="speech__error_insufficient_permissions">权限不足</string>
-    <string name="speech__error_network">网络错误</string>
-    <string name="speech__error_network_timeout">网络超时</string>
-    <string name="speech__error_no_match">未能识别</string>
-    <string name="speech__error_recognizer_busy">识别服务忙</string>
-    <string name="speech__error_server">服务器错误</string>
-    <string name="speech__error_unknown">未知错误</string>
-    <string name="speech__error_speech_timeout">无语音输入</string>
     <string name="about__app_info">应用信息</string>
     <string name="about__licensing">许可</string>
     <string name="about__support">支持</string>
@@ -187,7 +177,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="simple_key_pin">置顶</string>
     <string name="delete_all">删除全部</string>
     <string name="disable">禁用</string>
-    <string name="found_some_problems">但是我们似乎发现了些问题，请检查：</string>
     <string name="pref_clipboard_summary">收藏夹和草稿箱也在这里管理</string>
     <string name="a_regular_expression_per_line">一行一条正则表达式</string>
     <string name="keyboard__custom_key_sound">使用自定义按键音</string>

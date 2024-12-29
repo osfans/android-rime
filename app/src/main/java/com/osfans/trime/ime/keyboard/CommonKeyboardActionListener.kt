@@ -21,7 +21,6 @@ import com.osfans.trime.daemon.launchOnReady
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.KeyActionManager
-import com.osfans.trime.ime.core.Speech
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.dependency.InputScope
 import com.osfans.trime.ime.dialog.AvailableSchemaPickerDialog
@@ -227,7 +226,6 @@ class CommonKeyboardActionListener(
                             }
                         }
                     }
-                    KeyEvent.KEYCODE_VOICE_ASSIST -> Speech(service).startListening() // Speech Recognition
                     KeyEvent.KEYCODE_SETTINGS -> { // Settings
                         when (action.option) {
                             "theme" -> showThemePicker()
