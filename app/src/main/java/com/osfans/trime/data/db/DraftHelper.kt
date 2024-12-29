@@ -5,9 +5,9 @@
 package com.osfans.trime.data.db
 
 import android.content.Context
+import android.view.inputmethod.InputConnection
 import androidx.room.Room
 import com.osfans.trime.data.prefs.AppPrefs
-import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.util.matchesAny
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -85,13 +85,11 @@ object DraftHelper : CoroutineScope by CoroutineScope(SupervisorJob() + Dispatch
         updateItemCount()
     }
 
-    fun onInputEventChanged() {
+    fun onExtractedTextChanged(inputConnection: InputConnection) {
         if (!(limit != 0 && this::dftDao.isInitialized)) return
 
-        TrimeInputMethodService
-            .getServiceOrNull()
-            ?.currentInputConnection
-            ?.let { DatabaseBean.fromInputConnection(it) }
+        inputConnection
+            .let { DatabaseBean.fromInputConnection(it) }
             ?.takeIf {
                 it.text!!.isNotBlank() &&
                     !it.text.matchesAny(output)

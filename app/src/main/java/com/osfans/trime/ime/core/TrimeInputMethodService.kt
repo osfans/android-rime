@@ -173,7 +173,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         super.onCreate()
         decorView = window.window!!.decorView
         contentView = decorView.findViewById(android.R.id.content)
-        instance = this
         // MUST WRAP all code within Service onCreate() in try..catch to prevent any crash loops
         try {
             // Additional try..catch wrapper as the event listeners chain or the super.onCreate() method
@@ -285,7 +284,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         ColorManager.removeOnChangedListener(onColorChangeListener)
         super.onDestroy()
         RimeDaemon.destroySession(javaClass.name)
-        instance = null
     }
 
     private fun handleReturnKey() {
@@ -508,7 +506,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                         Timber.d("EditorInfo: normal -> exclude, packageName=%s", attribute.packageName)
                     } else {
                         normalTextEditor = true
-                        DraftHelper.onInputEventChanged()
+                        currentInputConnection?.let { DraftHelper.onExtractedTextChanged(it) }
                     }
                 }
             }
@@ -519,13 +517,13 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         Timber.d("onFinishInputView: finishingInput=$finishingInput")
         inputDeviceManager.onFinishInputView()
         currentInputConnection?.apply {
+            if (normalTextEditor) {
+                DraftHelper.onExtractedTextChanged(this)
+            }
             finishComposingText()
             monitorCursorAnchor(false)
         }
         postRimeJob {
-            if (normalTextEditor) {
-                DraftHelper.onInputEventChanged()
-            }
             clearComposition()
         }
         InputFeedbackManager.finishInput()
@@ -542,13 +540,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         }
         if (clearMeatKeyState) {
             ic.clearMetaKeyStates(KeyEvent.getModifierMetaStateMask())
-            DraftHelper.onInputEventChanged()
-        }
-    }
-
-    private fun commitTextByChar(text: String) {
-        for (char in text) {
-            commitText(char.toString())
+            DraftHelper.onExtractedTextChanged(ic)
         }
     }
 
@@ -952,12 +944,5 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     companion object {
         /** Delimiter regex to split language/locale tags. */
         private val DELIMITER_SPLITTER = """[-_]""".toRegex()
-
-        var instance: TrimeInputMethodService? = null
-
-        @JvmStatic
-        fun getService(): TrimeInputMethodService = instance ?: throw IllegalStateException("TrimeInputMethodService is not initialized")
-
-        fun getServiceOrNull(): TrimeInputMethodService? = instance
     }
 }
