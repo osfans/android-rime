@@ -22,7 +22,7 @@ import splitties.dimensions.dp
 import splitties.views.backgroundColor
 import splitties.views.dsl.core.Ui
 import splitties.views.dsl.core.textView
-import splitties.views.horizontalPadding
+import splitties.views.padding
 
 class LabeledCandidateItemUi(
     override val ctx: Context,
@@ -57,7 +57,7 @@ class LabeledCandidateItemUi(
 
     override val root =
         textView {
-            horizontalPadding = dp(theme.generalStyle.candidatePadding)
+            padding = dp(theme.generalStyle.candidatePadding)
         }
 
     fun update(

@@ -6,20 +6,21 @@
 package com.osfans.trime.ime.composition
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
-import com.osfans.trime.R
 import com.osfans.trime.core.RimeProto
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.daemon.launchOnReady
+import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.candidates.popup.PagedCandidatesUi
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import splitties.dimensions.dp
 import splitties.views.dsl.constraintlayout.below
 import splitties.views.dsl.constraintlayout.bottomOfParent
+import splitties.views.dsl.constraintlayout.centerHorizontally
 import splitties.views.dsl.constraintlayout.lParams
+import splitties.views.dsl.constraintlayout.matchConstraints
 import splitties.views.dsl.constraintlayout.startOfParent
 import splitties.views.dsl.constraintlayout.topOfParent
 import splitties.views.dsl.core.add
@@ -74,8 +75,17 @@ class CandidatesView(
     }
 
     init {
+        minWidth = dp(theme.generalStyle.layout.minWidth)
         verticalPadding = dp(theme.generalStyle.layout.marginX)
         horizontalPadding = dp(theme.generalStyle.layout.marginY)
+        background =
+            ColorManager.getDrawable(
+                ctx,
+                "candidate_background",
+                theme.generalStyle.candidateBorder,
+                "candidate_border_color",
+                theme.generalStyle.candidateBorderRound,
+            )
         add(
             preeditUi.root,
             lParams(wrapContent, wrapContent) {
@@ -85,9 +95,10 @@ class CandidatesView(
         )
         add(
             candidatesUi.root,
-            lParams(wrapContent, wrapContent) {
+            lParams(matchConstraints, wrapContent) {
+                matchConstraintMinWidth = wrapContent
                 below(preeditUi.root)
-                startOfParent()
+                centerHorizontally()
                 bottomOfParent()
             },
         )

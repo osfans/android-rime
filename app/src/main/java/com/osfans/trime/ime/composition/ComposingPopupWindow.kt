@@ -5,7 +5,6 @@
 package com.osfans.trime.ime.composition
 
 import android.graphics.RectF
-import android.os.Build
 import android.view.Gravity
 import android.view.View
 import android.view.View.MeasureSpec
@@ -16,10 +15,10 @@ import androidx.core.graphics.component1
 import androidx.core.graphics.component2
 import androidx.core.graphics.component3
 import androidx.core.graphics.component4
+import androidx.core.widget.PopupWindowCompat
 import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.data.prefs.AppPrefs
-import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.core.BaseMessageHandler
 import com.osfans.trime.ime.core.TrimeInputMethodService
@@ -42,21 +41,10 @@ class ComposingPopupWindow(
     private val window =
         PopupWindow(root).apply {
             isClippingEnabled = false
-            inputMethodMode = PopupWindow.INPUT_METHOD_NOT_NEEDED
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                windowLayoutType =
-                    WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG
-            }
-            setBackgroundDrawable(
-                ColorManager.getDrawable(
-                    service,
-                    "text_back_color",
-                    theme.generalStyle.layout.border,
-                    "border_color",
-                    theme.generalStyle.layout.roundCorner,
-                    theme.generalStyle.layout.alpha
-                        .toInt(),
-                ),
+            inputMethodMode = PopupWindow.INPUT_METHOD_NEEDED
+            PopupWindowCompat.setWindowLayoutType(
+                this,
+                WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG,
             )
             width = WindowManager.LayoutParams.WRAP_CONTENT
             height = WindowManager.LayoutParams.WRAP_CONTENT

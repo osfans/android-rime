@@ -79,6 +79,7 @@ class PagedCandidatesUi(
                     is UiHolder.Pagination -> {
                         holder.ui.update(menu)
                         holder.ui.root.updateLayoutParams<FlexboxLayoutManager.LayoutParams> {
+                            width = if (isHorizontal) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT
                             alignSelf = if (isHorizontal) AlignItems.CENTER else AlignItems.STRETCH
                         }
                     }
