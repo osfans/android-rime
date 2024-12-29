@@ -4,23 +4,17 @@
 
 package com.osfans.trime.ui.fragments
 
-import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import com.osfans.trime.R
-import com.osfans.trime.data.prefs.AppPrefs
-import com.osfans.trime.data.theme.ThemeManager
-import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ui.components.PaddingPreferenceFragment
 import com.osfans.trime.ui.main.MainViewModel
 import com.osfans.trime.ui.main.settings.KeySoundEffectPickerDialog
 import kotlinx.coroutines.launch
 
-class KeyboardFragment :
-    PaddingPreferenceFragment(),
-    SharedPreferences.OnSharedPreferenceChangeListener {
+class KeyboardFragment : PaddingPreferenceFragment() {
     private val viewModel: MainViewModel by activityViewModels()
 
     override fun onCreatePreferences(
@@ -35,31 +29,8 @@ class KeyboardFragment :
             }
     }
 
-    override fun onSharedPreferenceChanged(
-        sharedPreferences: SharedPreferences?,
-        key: String?,
-    ) {
-        when (key) {
-            "keyboard__key_long_press_timeout",
-            "keyboard__key_repeat_interval",
-            "keyboard__show_key_popup",
-            AppPrefs.Keyboard.LANDSCAPE_MODE, AppPrefs.Keyboard.SPLIT_SPACE_PERCENT,
-            "keyboard__show_window",
-            "keyboard__inline_preedit", "keyboard__soft_cursor",
-            -> {
-                TrimeInputMethodService.getServiceOrNull()?.recreateInputView(ThemeManager.activeTheme)
-            }
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         viewModel.disableTopOptionsMenu()
-        preferenceScreen.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        preferenceScreen.sharedPreferences?.unregisterOnSharedPreferenceChangeListener(this)
     }
 }
