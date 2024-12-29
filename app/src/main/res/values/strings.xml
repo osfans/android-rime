@@ -94,16 +94,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
         <item>always_show</item>
         <item>never_show</item>
     </string-array>
-    <string name="speech__error_audio">Error on recording</string>
-    <string name="speech__error_client">Error on client</string>
-    <string name="speech__error_insufficient_permissions">Insufficient permission</string>
-    <string name="speech__error_network">Error on network</string>
-    <string name="speech__error_network_timeout">Network timeout</string>
-    <string name="speech__error_no_match">Unable to recognize</string>
-    <string name="speech__error_recognizer_busy">Recognizer is busy</string>
-    <string name="speech__error_server">Error on server</string>
-    <string name="speech__error_unknown">Unknown error</string>
-    <string name="speech__error_speech_timeout">No voice detected</string>
     <string name="about__app_info">App Information</string>
     <string name="about__licensing">Licensing</string>
     <string name="about__support">Support</string>
@@ -188,7 +178,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     <string name="simple_key_pin">Pin</string>
     <string name="delete_all">Delete all</string>
     <string name="disable">Disbale</string>
-    <string name="found_some_problems">But we may found some problems, please check:</string>
     <string name="pref_clipboard_summary">Collection and draft are also managed here</string>
     <string name="a_regular_expression_per_line">A regular expression per line</string>
     <string name="keyboard__custom_key_sound">Use custom key sound</string>
