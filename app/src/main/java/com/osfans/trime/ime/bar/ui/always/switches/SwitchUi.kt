@@ -10,17 +10,20 @@ import android.view.ViewGroup
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.data.theme.Theme
+import com.osfans.trime.ime.core.AutoScaleTextView
 import com.osfans.trime.util.rippleDrawable
 import splitties.dimensions.dp
+import splitties.views.dsl.constraintlayout.bottomOfParent
 import splitties.views.dsl.constraintlayout.centerHorizontally
 import splitties.views.dsl.constraintlayout.centerVertically
 import splitties.views.dsl.constraintlayout.constraintLayout
 import splitties.views.dsl.constraintlayout.horizontalChain
 import splitties.views.dsl.constraintlayout.packed
+import splitties.views.dsl.constraintlayout.topOfParent
 import splitties.views.dsl.constraintlayout.verticalChain
 import splitties.views.dsl.core.Ui
 import splitties.views.dsl.core.matchParent
-import splitties.views.dsl.core.textView
+import splitties.views.dsl.core.view
 import splitties.views.dsl.core.wrapContent
 import splitties.views.gravityCenter
 import splitties.views.horizontalPadding
@@ -32,7 +35,7 @@ class SwitchUi(
     var enabled: Int = -1
 
     private val firstText =
-        textView {
+        view(::AutoScaleTextView) {
             textSize = theme.generalStyle.candidateTextSize
             typeface = FontManager.getTypeface("candidate_font")
             isSingleLine = true
@@ -41,10 +44,11 @@ class SwitchUi(
         }
 
     private val lastText =
-        textView {
+        view(::AutoScaleTextView) {
             textSize = theme.generalStyle.commentTextSize
             typeface = FontManager.getTypeface("comment_font")
             isSingleLine = true
+            gravity = gravityCenter
             ColorManager.getColor("comment_text_color")?.let { setTextColor(it) }
             visibility = View.GONE
         }
@@ -58,8 +62,15 @@ class SwitchUi(
                 verticalChain(
                     listOf(lastText, firstText),
                     style = packed,
-                    defaultHeight = wrapContent,
                     defaultWidth = wrapContent,
+                    initFirstViewParams = {
+                        height = dp(theme.generalStyle.commentHeight)
+                        topOfParent()
+                    },
+                    initLastViewParams = {
+                        height = dp(theme.generalStyle.candidateViewHeight)
+                        bottomOfParent()
+                    },
                     initParams = { centerHorizontally() },
                 )
             } else {
