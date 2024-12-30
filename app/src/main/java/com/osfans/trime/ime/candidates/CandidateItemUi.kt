@@ -13,11 +13,14 @@ import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.ime.core.AutoScaleTextView
 import com.osfans.trime.util.pressHighlightDrawable
+import splitties.dimensions.dp
+import splitties.views.dsl.constraintlayout.bottomOfParent
 import splitties.views.dsl.constraintlayout.centerHorizontally
 import splitties.views.dsl.constraintlayout.centerVertically
 import splitties.views.dsl.constraintlayout.constraintLayout
 import splitties.views.dsl.constraintlayout.horizontalChain
 import splitties.views.dsl.constraintlayout.packed
+import splitties.views.dsl.constraintlayout.topOfParent
 import splitties.views.dsl.constraintlayout.verticalChain
 import splitties.views.dsl.core.Ui
 import splitties.views.dsl.core.view
@@ -63,7 +66,14 @@ class CandidateItemUi(
                     listOf(lastText, firstText),
                     style = packed,
                     defaultWidth = wrapContent,
-                    defaultHeight = wrapContent,
+                    initFirstViewParams = {
+                        height = dp(theme.generalStyle.commentHeight)
+                        topOfParent()
+                    },
+                    initLastViewParams = {
+                        height = dp(theme.generalStyle.candidateViewHeight)
+                        bottomOfParent()
+                    },
                     initParams = { centerHorizontally() },
                 )
             } else {
