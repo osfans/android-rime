@@ -202,7 +202,8 @@ object RimeDaemon {
                                 appContext,
                                 0,
                                 intent,
-                                PendingIntent.FLAG_UPDATE_CURRENT,
+                                PendingIntent.FLAG_ONE_SHOT or
+                                    PendingIntent.FLAG_IMMUTABLE,
                             ),
                         ).setOngoing(false)
                         .setAutoCancel(true)
