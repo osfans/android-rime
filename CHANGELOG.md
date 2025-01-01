@@ -2,6 +2,106 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.3.2] - 2025-01-01
+
+### 🚀 Features
+
+- Add Android keycode to scancode mapping
+- Implement RimeKeyEvent
+- Replace Composition (view) with CandidatesView
+- Make new PreeditUi support moving cursor on touch
+- Integrate UI creation for PreferenceDelegate
+- Allow user to determine the candidates view mode
+- Add PageinationUi to indicate if candidates page has prev or next
+- Restore horizontal padding for candidate item in candidate window
+- Restore vertical layout in candidate window
+- Add keyval unicode mapping to process unhandled-by-librime key
+- Enhance physical keyboard support with candidates window
+- Show preedit ui on the top of bar when candidates window is disabled
+- New deploy user experience
+- Improve candidate item display
+- Improve switch display
+- Improve candidate window display
+
+### 🐛 Bug Fixes
+
+- Clipboard update not in time
+- Main keyboard view would disappear after switching schema
+- Back, Escape and Enter key action was handled before forward to librime
+- Space key always showed current schema name
+- Temporary workaround for duplicated return action (again)
+- Only the candidates of the first page could be selected in popup window
+- Reduce crash on flexboxlayout changing on candidates update
+- Keyboard view would be disappear after recreating input view
+- Workaround for some symbols cannot be committed
+- Make sure the window view height can always follow current keyboard height
+- Schema name on space bar didn't change after switching schema
+- Workaround for some text pattern cannot be simulated as key sequence
+- Wrong behavior on pressing return key on physical keyboard
+- Candidates window blocked the bar at first time showup
+- Regression that return key from physical keyboard would duplicate new line
+- Add missing highlighted candidate background
+- Crash on creating notification on deploy failure on Android 12+
+- `KP_*` would be processed twice
+
+### 🚜 Refactor
+
+- Replace SimpleKeyItemBinding with SimpleItemUi
+- Transform FlexibleAdapter with BaseDifferAdapter
+- Remove deprecated and unused api
+- Update key processing api usage
+- Utilize scancode to improve key event handling
+- Tell key processing API if the system key event is ACTION_UP
+- Rename Event to KeyAction
+- Polish the code of KeyAction
+- Reduce redundant nesting during key processing
+- Rename KeyEventType to KeyBehavior
+- Remove unused override `onWindowShown/Hidden` in TrimeInputMethodService
+- Relocate the files in candidates
+- Rename InlinePreeditMode to ComposingTextMode and set DISABLED as default value
+- Remove deprecated string res and preference items
+- Try to clean up the code in KeyboardView
+- Make Keyboard as KeyboardView a primary constructor's parameters
+- Cleanup for keyboard drawing in KeyboardView
+- Remove deprecated popup keyboard stuffs in KeyboardView
+- Clean up the code of Key and Keyboard
+- Replace LeakGuardHandlerWrapper with coroutines
+- Improve cursor following of candidate window
+- Remove scancode mapping
+- Judge key up state by modifiers
+- Remove deprecated GraphicUtils
+- Make candidates window can show at fixed position perfectly
+- Extract `showDialog` from InputView to IMS
+- Clean up `ShortcutUtils`
+- Split Utils.kt by function or receiver type
+- Slightly refine NinePatchBitmapFactory.kt
+- Remove unused resources
+- Bundle core native lib version name into BuildConfig
+- Improve user experience of settings pages
+- Correct preedit view behavior and polish its appearance
+- Remove librime charcode plugin
+- Remove iconv dependency
+- Merge RimeNotification and RimeEvent as RimeMessage
+- Try to improve the showing of the preedit view
+- Migrate DialogUtils to ProgressBarDialogIndeterminate
+- Remove speech recognition
+- Deprecate IMS instance getter
+- Constraint the text views' height in CandidateItemUi
+- Share the features of CandidateItemUi to SwitchUi
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 3.3.2
+- Upgrade librime to 1.12.0
+- Update librime to 1.12.0-1-gec40354
+- Upgrade ktlint to 1.5.0
+- Add 3.3.2 changelog
+
+### Build
+
+- Try to adjust gradle jvm arguments
+- Refactor build process
+
 ## [3.3.1] - 2024-11-01
 
 ### 🚀 Features
