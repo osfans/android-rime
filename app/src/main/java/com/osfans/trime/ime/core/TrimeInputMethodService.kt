@@ -243,7 +243,13 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                                 handleReturnKey()
                                 return
                             }
-                            sendDownKeyEvent(eventTime, keyCode, it.modifiers.metaState)
+
+                            if (keyCode in KeyEvent.KEYCODE_NUMPAD_0..KeyEvent.KEYCODE_NUMPAD_EQUALS) {
+                                // ignore KP_X keys, which is handled in `CommonKeyboardActionListener`.
+                                // Requires this empty body becoz Kotlin request it
+                            } else {
+                                sendDownKeyEvent(eventTime, keyCode, it.modifiers.metaState)
+                            }
                         }
                     } else {
                         if (!it.modifiers.release && it.unicode > 0) {
