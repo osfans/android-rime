@@ -259,7 +259,10 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                         }
                     }
                 }
-            else -> {}
+            else ->
+                lifecycleScope.launch {
+                    RimeDaemon.onRimeMessage(this@TrimeInputMethodService, it)
+                }
         }
     }
 
