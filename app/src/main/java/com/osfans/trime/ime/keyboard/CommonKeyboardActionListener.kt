@@ -259,11 +259,9 @@ class CommonKeyboardActionListener(
                                 }
                             }
                         }
-                        if (action.modifier == 0) {
-                            onKey(action.code, KeyboardSwitcher.currentKeyboard.modifier)
-                        } else {
-                            onKey(action.code, action.modifier)
-                        }
+                        val currentModifier = KeyboardSwitcher.currentKeyboard.modifier
+                        val combinedModifiers = action.modifier or currentModifier
+                        onKey(action.code, if (action.modifier == 0) currentModifier else combinedModifiers)
                     }
                 }
             }
