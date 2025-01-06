@@ -259,9 +259,22 @@ class CommonKeyboardActionListener(
                                 }
                             }
                         }
-                        val currentModifier = KeyboardSwitcher.currentKeyboard.modifier
-                        val combinedModifiers = action.modifier or currentModifier
-                        onKey(action.code, if (action.modifier == 0) currentModifier else combinedModifiers)
+                        val modifier =
+                            when {
+                                action.modifier == 0 -> KeyboardSwitcher.currentKeyboard.modifier
+                                (action.modifier and KeyEvent.META_CTRL_ON) != 0 -> {
+                                    when (action.code) {
+                                        in KeyEvent.KEYCODE_DPAD_UP..KeyEvent.KEYCODE_DPAD_RIGHT,
+                                        KeyEvent.KEYCODE_MOVE_HOME,
+                                        KeyEvent.KEYCODE_MOVE_END,
+                                        -> action.modifier or KeyboardSwitcher.currentKeyboard.modifier
+
+                                        else -> action.modifier
+                                    }
+                                }
+                                else -> action.modifier
+                            }
+                        onKey(action.code, modifier)
                     }
                 }
             }
