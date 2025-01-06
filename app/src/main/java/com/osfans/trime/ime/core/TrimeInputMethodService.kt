@@ -247,8 +247,15 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                             if (keyCode in KeyEvent.KEYCODE_NUMPAD_0..KeyEvent.KEYCODE_NUMPAD_EQUALS) {
                                 // ignore KP_X keys, which is handled in `CommonKeyboardActionListener`.
                                 // Requires this empty body becoz Kotlin request it
-                            } else {
+                                return
+                            }
+
+                            it.modifiers.shift.apply {
+                                if (this) sendDownKeyEvent(eventTime, KeyEvent.KEYCODE_SHIFT_LEFT)
+
                                 sendDownKeyEvent(eventTime, keyCode, it.modifiers.metaState)
+
+                                if (this) sendUpKeyEvent(eventTime, KeyEvent.KEYCODE_SHIFT_LEFT)
                             }
                         }
                     } else {
