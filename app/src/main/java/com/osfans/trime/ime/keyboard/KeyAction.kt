@@ -92,12 +92,14 @@ class KeyAction(
 
     init {
         val unbraced = raw.removeSurrounding("{", "}")
+        var handled = false
         // match like: { x: "{Control+a}" }
         if (raw.matches(BRACED_STR)) {
             val (c, m) = Keycode.parseSend(unbraced)
             if (c != KeyEvent.KEYCODE_UNKNOWN || m > 0) {
                 code = c
                 modifier = m
+                handled = true
             } else {
                 // match: { x: { commit: a, text: b, label: c } }
                 val action = decodeMapFromString(raw)
@@ -105,9 +107,11 @@ class KeyAction(
                     commit = action["commit"] ?: ""
                     text = action["text"] ?: ""
                     label = action["label"] ?: ""
+                    handled = true
                 }
             }
-        } else {
+        }
+        if (!handled) {
             val theme = ThemeManager.activeTheme
             // match like: { x: BackSpace } -> preset_keys/BackSpace: {..., send: BackSpace }
             if (theme.presetKeys!!.containsKey(unbraced)) {
