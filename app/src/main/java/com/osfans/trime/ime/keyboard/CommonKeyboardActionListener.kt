@@ -291,13 +291,13 @@ class CommonKeyboardActionListener(
                         ?: Rime.getRimeKeycodeByName(Keycode.keyNameOf(keyEventCode))
                 val modifiers = KeyModifiers.fromMetaState(metaState).modifiers
                 service.postRimeJob {
+                    if (service.hookKeyboard(keyEventCode, metaState)) {
+                        Timber.d("handleKey: hook")
+                        return@postRimeJob
+                    }
                     if (processKey(value, modifiers)) {
                         shouldReleaseKey = true
                         Timber.d("handleKey: processKey")
-                        return@postRimeJob
-                    }
-                    if (service.hookKeyboard(keyEventCode, metaState)) {
-                        Timber.d("handleKey: hook")
                         return@postRimeJob
                     }
                     if (AppUtils.launchKeyCategory(service, keyEventCode)) {

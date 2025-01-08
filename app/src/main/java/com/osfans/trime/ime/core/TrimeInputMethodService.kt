@@ -849,7 +849,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                     etr.token = 0
                     val et = ic.getExtractedText(etr, 0)
                     if (et != null) {
-                        if (et.selectionEnd - et.selectionStart > 0) return ic.performContextMenuAction(android.R.id.cut)
+                        if (et.selectionStart != et.selectionEnd) return ic.performContextMenuAction(android.R.id.cut)
                     }
                 }
                 Timber.w("hookKeyboard cut fail")
@@ -863,7 +863,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                     etr.token = 0
                     val et = ic.getExtractedText(etr, 0)
                     if (et != null) {
-                        if (et.selectionEnd - et.selectionStart > 0) return ic.performContextMenuAction(android.R.id.copy)
+                        if (et.selectionStart != et.selectionEnd) return ic.performContextMenuAction(android.R.id.copy)
                     }
                 }
                 Timber.w("hookKeyboard copy fail")
