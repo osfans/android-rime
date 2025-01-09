@@ -250,12 +250,14 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                                 return
                             }
 
-                            it.modifiers.shift.apply {
-                                if (this) sendDownKeyEvent(eventTime, KeyEvent.KEYCODE_SHIFT_LEFT)
+                            it.modifiers.apply {
+                                if (this.shift) sendDownKeyEvent(eventTime, KeyEvent.KEYCODE_SHIFT_LEFT)
 
                                 sendDownKeyEvent(eventTime, keyCode, it.modifiers.metaState)
 
-                                if (this) sendUpKeyEvent(eventTime, KeyEvent.KEYCODE_SHIFT_LEFT)
+                                if (this.shift) sendUpKeyEvent(eventTime, KeyEvent.KEYCODE_SHIFT_LEFT)
+
+                                if (ctrl && keyCode == KeyEvent.KEYCODE_C) cancelTextSelection()
                             }
                         }
                     } else {
@@ -863,7 +865,14 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                     etr.token = 0
                     val et = ic.getExtractedText(etr, 0)
                     if (et != null) {
-                        if (et.selectionStart != et.selectionEnd) return ic.performContextMenuAction(android.R.id.copy)
+                        if (et.selectionStart != et.selectionEnd) {
+                            ic.performContextMenuAction(android.R.id.copy).also { result ->
+                                if (result) {
+                                    cancelTextSelection()
+                                }
+                                return result
+                            }
+                        }
                     }
                 }
                 Timber.w("hookKeyboard copy fail")
@@ -916,6 +925,17 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                 }
         }
         return false
+    }
+
+    fun cancelTextSelection() {
+        val ic = currentInputConnection ?: return
+        val etr = ExtractedTextRequest().apply { token = 0 }
+        val et = currentInputConnection.getExtractedText(etr, 0)
+        et?.let {
+            if (it.selectionStart != it.selectionEnd) {
+                ic.setSelection(it.selectionEnd, it.selectionEnd)
+            }
+        }
     }
 
     private val composingTextMode by prefs.general.composingTextMode
