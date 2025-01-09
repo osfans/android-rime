@@ -123,6 +123,7 @@ class AppPrefs(
             const val HOOK_SHIFT_SPACE = "keyboard__hook_shift_space"
             const val HOOK_SHIFT_NUM = "keyboard__hook_shift_num"
             const val HOOK_SHIFT_SYMBOL = "keyboard__hook_shift_symbol"
+            const val HOOK_SHIFT_ARROW = "keyboard__hook_shift_arrow"
 
             const val SOUND_ENABLED = "keyboard__key_sound"
             const val SOUND_VOLUME = "keyboard__key_sound_volume"
@@ -165,6 +166,7 @@ class AppPrefs(
         val hookShiftSpace by bool(HOOK_SHIFT_SPACE, false)
         val hookShiftNum by bool(HOOK_SHIFT_NUM, false)
         val hookShiftSymbol by bool(HOOK_SHIFT_SYMBOL, false)
+        val hookShiftArrow by bool(HOOK_SHIFT_ARROW, true)
 
         val soundEnabled by bool(SOUND_ENABLED, false)
         var customSoundEnabled by bool(CUSTOM_SOUND_ENABLED, false)

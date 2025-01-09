@@ -122,6 +122,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
             android:title="@string/keyboard__hook_shift_symbol"
             app:iconSpaceReserved="false" />
 
+        <SwitchPreferenceCompat
+            android:key="keyboard__hook_shift_arrow"
+            android:title="@string/keyboard__hook_shift_arrow"
+            android:defaultValue="true"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

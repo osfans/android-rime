@@ -19,6 +19,7 @@ import android.graphics.drawable.StateListDrawable
 import android.os.SystemClock
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import androidx.lifecycle.findViewTreeLifecycleOwner
@@ -681,6 +682,18 @@ class KeyboardView(
         }
     }
 
+    private val hookShiftArrow get() = AppPrefs.defaultInstance().keyboard.hookShiftArrow
+
+    fun isHookShiftArrow(keyCode: Int): Boolean {
+        if (!hookShiftArrow) return false
+
+        return when (keyCode) {
+            in KeyEvent.KEYCODE_DPAD_UP..KeyEvent.KEYCODE_DPAD_RIGHT -> true
+            KeyEvent.KEYCODE_MOVE_HOME, KeyEvent.KEYCODE_MOVE_END -> true
+            else -> false
+        }
+    }
+
     private fun detectAndSendKey(
         index: Int,
         x: Int,
@@ -707,7 +720,9 @@ class KeyboardView(
                 key.getAction(behavior)?.let { keyboardActionListener?.onAction(it) }
                 releaseKey(code)
                 Timber.d("detectAndSendKey: refreshModifier")
-                refreshModifier()
+                if (!isHookShiftArrow(code)) {
+                    refreshModifier()
+                }
             }
             mLastSentIndex = index
             mLastTapTime = eventTime
@@ -802,7 +817,9 @@ class KeyboardView(
             mAbortKey = true
             keyboardActionListener?.onAction(it)
             releaseKey(it.code)
-            refreshModifier()
+            if (!isHookShiftArrow(it.code)) {
+                refreshModifier()
+            }
             return true
         }
         Timber.w("only set isShifted, no others modifierkey")
