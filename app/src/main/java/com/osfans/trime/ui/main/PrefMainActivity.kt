@@ -24,9 +24,8 @@ import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupWithNavController
 import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import com.osfans.trime.R
@@ -44,26 +43,15 @@ import splitties.views.topPadding
 
 class PrefMainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
-    private val prefs = AppPrefs.defaultInstance()
 
-    private lateinit var navHostFragment: NavHostFragment
+    private val uiMode by AppPrefs.defaultInstance().other.uiMode
+
+    private lateinit var navController: NavController
     private var loadingDialog: AlertDialog? = null
-
-    private fun onNavigateUpListener(): Boolean {
-        val navController = navHostFragment.navController
-        return when (navController.currentDestination?.id) {
-            R.id.prefFragment -> {
-                // "minimize" the app, don't exit activity
-                moveTaskToBack(false)
-                true
-            }
-            else -> onSupportNavigateUp()
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val uiMode =
-            when (prefs.other.uiMode) {
+            when (uiMode) {
                 AppPrefs.Other.UiMode.AUTO -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
                 AppPrefs.Other.UiMode.LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
                 AppPrefs.Other.UiMode.DARK -> AppCompatDelegate.MODE_NIGHT_YES
@@ -88,14 +76,16 @@ class PrefMainActivity : AppCompatActivity() {
 
         setContentView(binding.root)
         setSupportActionBar(binding.prefToolbar.toolbar)
-        val appBarConfiguration =
-            AppBarConfiguration(
-                topLevelDestinationIds = setOf(),
-                fallbackOnNavigateUpListener = ::onNavigateUpListener,
-            )
-        navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        binding.prefToolbar.toolbar.setupWithNavController(navHostFragment.navController, appBarConfiguration)
+        navController = binding.navHostFragment.getFragment<NavHostFragment>().navController
+        binding.prefToolbar.toolbar.setNavigationOnClickListener {
+            // prevent navigate up when child fragment has enabled `OnBackPressedCallback`
+            if (onBackPressedDispatcher.hasEnabledCallbacks()) {
+                onBackPressedDispatcher.onBackPressed()
+                return@setNavigationOnClickListener
+            }
+            // "minimize" the activity if we can't go back
+            navController.navigateUp() || onSupportNavigateUp() || moveTaskToBack(false)
+        }
         viewModel.toolbarTitle.observe(this) {
             binding.prefToolbar.toolbar.title = it
         }
@@ -104,7 +94,7 @@ class PrefMainActivity : AppCompatActivity() {
                 m.isVisible = it
             }
         }
-        navHostFragment.navController.addOnDestinationChangedListener { _, dest, _ ->
+        navController.addOnDestinationChangedListener { _, dest, _ ->
             dest.label?.let { viewModel.setToolbarTitle(it.toString()) }
             binding.prefToolbar.toolbar.subtitle =
                 if (dest.id == R.id.prefFragment) {
@@ -157,7 +147,7 @@ class PrefMainActivity : AppCompatActivity() {
                 true
             }
             R.id.preference__menu_about -> {
-                navHostFragment.navController.navigate(R.id.action_prefFragment_to_aboutFragment)
+                navController.navigate(R.id.action_prefFragment_to_aboutFragment)
                 true
             }
             else -> super.onOptionsItemSelected(item)
