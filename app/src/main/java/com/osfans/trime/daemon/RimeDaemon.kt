@@ -7,7 +7,6 @@ package com.osfans.trime.daemon
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
@@ -26,6 +25,7 @@ import com.osfans.trime.util.logcat
 import com.osfans.trime.util.toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -55,6 +55,8 @@ object RimeDaemon {
     private val sessions = mutableMapOf<String, RimeSession>()
 
     private val lock = ReentrantLock()
+
+    private var messageJob: Job? = null
 
     private fun establish(name: String) =
         object : RimeSession {
@@ -150,19 +152,24 @@ object RimeDaemon {
                 .build()
                 .let { notificationManager.notify(id, it) }
             realRime.finalize()
+            messageJob =
+                TrimeApplication.getInstance().coroutineScope.launch {
+                    realRime.messageFlow.collect {
+                        handleRimeMessage(it)
+                    }
+                }
             realRime.startup(fullCheck)
             TrimeApplication.getInstance().coroutineScope.launch {
                 // cancel notification on ready
                 realRime.lifecycle.whenReady {
                     notificationManager.cancel(id)
+                    messageJob?.cancel()
+                    messageJob = null
                 }
             }
         }
 
-    suspend fun onRimeMessage(
-        ctx: Context,
-        it: RimeMessage<*>,
-    ) {
+    private suspend fun handleRimeMessage(it: RimeMessage<*>) {
         if (it is RimeMessage.DeployMessage) {
             when (it.data) {
                 RimeMessage.DeployMessage.State.Start -> {
@@ -171,13 +178,13 @@ object RimeDaemon {
                     }
                 }
                 RimeMessage.DeployMessage.State.Success -> {
-                    ContextCompat.getMainExecutor(ctx).execute {
-                        ctx.toast(R.string.deploy_finish)
+                    ContextCompat.getMainExecutor(appContext).execute {
+                        appContext.toast(R.string.deploy_finish)
                     }
                 }
                 RimeMessage.DeployMessage.State.Failure -> {
                     val intent =
-                        Intent(ctx, LogActivity::class.java).apply {
+                        Intent(appContext, LogActivity::class.java).apply {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                             val log =
                                 withContext(Dispatchers.IO) {
@@ -191,13 +198,13 @@ object RimeDaemon {
                             putExtra(LogActivity.DEPLOY_FAILURE_TRACE, log)
                         }
                     NotificationCompat
-                        .Builder(ctx, CHANNEL_ID)
+                        .Builder(appContext, CHANNEL_ID)
                         .setSmallIcon(R.drawable.ic_baseline_warning_24)
-                        .setContentTitle(ctx.getString(R.string.rime_daemon))
-                        .setContentText(ctx.getString(R.string.view_deploy_failure_log))
+                        .setContentTitle(appContext.getString(R.string.rime_daemon))
+                        .setContentText(appContext.getString(R.string.view_deploy_failure_log))
                         .setContentIntent(
                             PendingIntent.getActivity(
-                                ctx,
+                                appContext,
                                 0,
                                 intent,
                                 PendingIntent.FLAG_ONE_SHOT or
