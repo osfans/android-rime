@@ -55,6 +55,10 @@ class LiquidKeyboard(
     private lateinit var currentBoardType: SymbolBoardType
     private lateinit var currentBoardAdapter: RecyclerView.Adapter<*>
 
+    init {
+        TabManager.setTabExited()
+    }
+
     private val simpleAdapter by lazy {
         val itemWidth = context.dp(theme.liquid.getInt("single_width"))
         val columnCount = context.resources.displayMetrics.widthPixels / itemWidth
