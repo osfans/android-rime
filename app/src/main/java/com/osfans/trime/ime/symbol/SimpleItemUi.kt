@@ -42,7 +42,10 @@ class SimpleItemUi(
             typeface = FontManager.getTypeface("long_text_font")
             setPaddingDp(8, 4, 8, 4)
             ellipsize = TextUtils.TruncateAt.END
-            ColorManager.getColor("long_text_color")?.let {
+            (
+                ColorManager.getColor("long_text_color")
+                    ?: ColorManager.getColor("key_text_color")
+            )?.let {
                 setTextColor(it)
             }
         }
