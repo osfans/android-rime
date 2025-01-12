@@ -141,8 +141,8 @@ object ClipboardHelper :
                 launch {
                     mutex.withLock {
                         clbDao.find(b.text)?.let {
-                            updateLastBean(it.copy(time = b.time))
                             clbDao.updateTime(it.id, b.time)
+                            updateLastBean(it.copy(time = b.time))
                             return@launch
                         }
                         val rowId = clbDao.insert(b)
