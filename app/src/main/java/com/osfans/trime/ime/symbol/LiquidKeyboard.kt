@@ -80,7 +80,7 @@ class LiquidKeyboard(
             setOnDebouncedItemClick { _, _, position ->
                 val item = items[position]
                 when (currentBoardType) {
-                    SymbolBoardType.SYMBOL -> triggerSymbolInput(item.first)
+                    SymbolBoardType.SYMBOL -> triggerSymbolInput(item.second)
                     SymbolBoardType.TABS -> {
                         val realPosition = TabManager.tabTags.indexOfFirst { it.text == item.first }
                         select(realPosition)
@@ -160,7 +160,8 @@ class LiquidKeyboard(
                 val items =
                     data.map {
                         val text = if (tag.type == SymbolBoardType.SYMBOL) it.label else it.text
-                        text to ""
+                        val value = if (tag.type == SymbolBoardType.SYMBOL) it.text else ""
+                        text to value
                     }
                 initVarLengthKeys(items)
             }
