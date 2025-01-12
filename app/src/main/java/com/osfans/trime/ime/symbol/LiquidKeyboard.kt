@@ -148,8 +148,15 @@ class LiquidKeyboard(
     }
 
     fun select(i: Int) {
-        if (TabManager.currentTabIndex == i) return
         val tag = TabManager.tabTags[i]
+        if (TabManager.currentTabIndex == i) {
+            if (tag.type == SymbolBoardType.CLIPBOARD) {
+                service.lifecycleScope.launch {
+                    dbAdapter.submitList(ClipboardHelper.getAll())
+                }
+            }
+            return
+        }
         currentBoardType = tag.type
         liquidLayout.tabsUi.activateTab(i)
         val data = TabManager.selectTabByIndex(i)
