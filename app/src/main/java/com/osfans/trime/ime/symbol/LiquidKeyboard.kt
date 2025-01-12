@@ -236,8 +236,8 @@ class LiquidKeyboard(
      */
     override fun onUpdate(bean: DatabaseBean) {
         service.lifecycleScope.launch {
-            dbAdapter.submitList(ClipboardHelper.getAll())
             if (currentBoardType == SymbolBoardType.CLIPBOARD) {
+                dbAdapter.submitList(ClipboardHelper.getAll())
                 withContext(Dispatchers.Main) {
                     keyboardView.scrollToPosition(0)
                 }
